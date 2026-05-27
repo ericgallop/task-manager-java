@@ -1,10 +1,11 @@
 package com.demo;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 
 public class Main {
-    private static final TaskManager manager = new TaskManager();
+    private static final TaskService service = new TaskService(new InMemoryTaskRepository());
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
@@ -17,12 +18,18 @@ public class Main {
             String input = scanner.nextLine().trim();
 
             switch (input) {
-                case "1": addTask(); break;
-                case "2": listTasks(); break;
-                case "3": completeTask(); break;
-                case "4": removeTask(); break;
-                case "5": running = false; break;
-                default: System.out.println("Invalid option.");
+                case "1":  addTask();          break;
+                case "2":  listTasks();        break;
+                case "3":  startTask();        break;
+                case "4":  completeTask();     break;
+                case "5":  cancelTask();       break;
+                case "6":  assignTask();       break;
+                case "7":  setPriority();      break;
+                case "8":  removeTask();       break;
+                case "9":  showSummary();      break;
+                case "10": showOverdue();      break;
+                case "0":  running = false;    break;
+                default:   System.out.println("Invalid option.");
             }
         }
 
@@ -31,59 +38,112 @@ public class Main {
     }
 
     private static void printMenu() {
-        System.out.println("\n1. Add task");
-        System.out.println("2. List tasks");
-        System.out.println("3. Complete task");
-        System.out.println("4. Remove task");
-        System.out.println("5. Exit");
+        System.out.println("\n 1. Add task");
+        System.out.println(" 2. List all tasks");
+        System.out.println(" 3. Start task");
+        System.out.println(" 4. Complete task");
+        System.out.println(" 5. Cancel task");
+        System.out.println(" 6. Assign task");
+        System.out.println(" 7. Set priority");
+        System.out.println(" 8. Remove task");
+        System.out.println(" 9. Summary");
+        System.out.println("10. Show overdue");
+        System.out.println(" 0. Exit");
         System.out.print("Choose: ");
     }
 
     private static void addTask() {
-        System.out.print("Task title: ");
+        System.out.print("Title: ");
         String title = scanner.nextLine().trim();
-        if (title.isEmpty()) {
-            System.out.println("Title cannot be empty.");
-            return;
+        if (title.isEmpty()) { System.out.println("Title cannot be empty."); return; }
+
+        System.out.print("Priority [LOW/MEDIUM/HIGH/CRITICAL] (default MEDIUM): ");
+        Priority priority = Priority.fromString(scanner.nextLine().trim());
+
+        System.out.print("Description (optional): ");
+        String desc = scanner.nextLine().trim();
+
+        System.out.print("Due date [yyyy-MM-dd] (optional): ");
+        String dateStr = scanner.nextLine().trim();
+        LocalDate due = null;
+        if (!dateStr.isEmpty()) {
+            try { due = LocalDate.parse(dateStr); }
+            catch (Exception e) { System.out.println("Invalid date format — skipping due date."); }
         }
-        Task task = manager.addTask(title);
-        System.out.println("Added: " + task);
+
+        Task task = service.createTask(title, priority, desc.isEmpty() ? null : desc, due);
+        System.out.println("Created: " + task);
     }
 
     private static void listTasks() {
-        List<Task> tasks = manager.getAllTasks();
-        if (tasks.isEmpty()) {
-            System.out.println("No tasks.");
-            return;
-        }
+        List<Task> tasks = service.getTasksSortedByPriority();
+        if (tasks.isEmpty()) { System.out.println("No tasks."); return; }
         tasks.forEach(System.out::println);
     }
 
+    private static void startTask() {
+        int id = readId("Task ID to start: ");
+        if (id < 0) return;
+        if (service.startTask(id)) System.out.println("Task " + id + " is now IN_PROGRESS.");
+        else System.out.println("Task not found or already started.");
+    }
+
     private static void completeTask() {
-        System.out.print("Task ID to complete: ");
-        try {
-            int id = Integer.parseInt(scanner.nextLine().trim());
-            if (manager.completeTask(id)) {
-                System.out.println("Task " + id + " completed.");
-            } else {
-                System.out.println("Task not found.");
-            }
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid ID.");
-        }
+        int id = readId("Task ID to complete: ");
+        if (id < 0) return;
+        if (service.completeTask(id)) System.out.println("Task " + id + " completed.");
+        else System.out.println("Task not found.");
+    }
+
+    private static void cancelTask() {
+        int id = readId("Task ID to cancel: ");
+        if (id < 0) return;
+        if (service.cancelTask(id)) System.out.println("Task " + id + " cancelled.");
+        else System.out.println("Task not found.");
+    }
+
+    private static void assignTask() {
+        int id = readId("Task ID to assign: ");
+        if (id < 0) return;
+        System.out.print("Assignee name: ");
+        String assignee = scanner.nextLine().trim();
+        if (service.assignTask(id, assignee)) System.out.println("Assigned task " + id + " to " + assignee);
+        else System.out.println("Task not found.");
+    }
+
+    private static void setPriority() {
+        int id = readId("Task ID: ");
+        if (id < 0) return;
+        System.out.print("New priority [LOW/MEDIUM/HIGH/CRITICAL]: ");
+        Priority p = Priority.fromString(scanner.nextLine().trim());
+        if (service.updatePriority(id, p)) System.out.println("Priority updated.");
+        else System.out.println("Task not found.");
     }
 
     private static void removeTask() {
-        System.out.print("Task ID to remove: ");
+        int id = readId("Task ID to remove: ");
+        if (id < 0) return;
+        if (service.deleteTask(id)) System.out.println("Task " + id + " removed.");
+        else System.out.println("Task not found.");
+    }
+
+    private static void showSummary() {
+        System.out.println(service.getSummary());
+    }
+
+    private static void showOverdue() {
+        List<Task> overdue = service.getOverdueTasks();
+        if (overdue.isEmpty()) System.out.println("No overdue tasks.");
+        else overdue.forEach(System.out::println);
+    }
+
+    private static int readId(String prompt) {
+        System.out.print(prompt);
         try {
-            int id = Integer.parseInt(scanner.nextLine().trim());
-            if (manager.removeTask(id)) {
-                System.out.println("Task " + id + " removed.");
-            } else {
-                System.out.println("Task not found.");
-            }
+            return Integer.parseInt(scanner.nextLine().trim());
         } catch (NumberFormatException e) {
             System.out.println("Invalid ID.");
+            return -1;
         }
     }
 }

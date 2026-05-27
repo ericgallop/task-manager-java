@@ -20,6 +20,7 @@ public class TaskManagerTest {
         Task task = manager.addTask("Write tests");
         assertEquals("Write tests", task.getTitle());
         assertFalse(task.isCompleted());
+        assertEquals(TaskStatus.TODO, task.getStatus());
     }
 
     @Test
@@ -34,6 +35,7 @@ public class TaskManagerTest {
         Task task = manager.addTask("Do something");
         assertTrue(manager.completeTask(task.getId()));
         assertTrue(task.isCompleted());
+        assertEquals(TaskStatus.DONE, task.getStatus());
     }
 
     @Test
@@ -57,5 +59,10 @@ public class TaskManagerTest {
         List<Task> pending = manager.getPendingTasks();
         assertEquals(1, pending.size());
         assertEquals(t2.getId(), pending.get(0).getId());
+    }
+
+    @Test
+    void removeTask_returnsFalseForMissingId() {
+        assertFalse(manager.removeTask(999));
     }
 }
