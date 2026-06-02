@@ -1,6 +1,6 @@
 # Task Manager Java
 
-A command-line task management application built in Java. Supports creating, assigning, prioritizing, and tracking tasks through a defined lifecycle.
+A desktop task management application built in Java Swing, with the original command-line interface still available. Supports creating, assigning, prioritizing, and tracking tasks through a defined lifecycle.
 
 ## Features
 
@@ -10,13 +10,15 @@ A command-line task management application built in Java. Supports creating, ass
 - Filter and sort by priority or due date
 - Identify overdue tasks
 - Summary view with counts by status
+- Desktop UI with task table, filters, sorting, and quick actions
 
 ## Project Structure
 
 ```
 src/
 ├── main/java/com/demo/
-│   ├── Main.java                   # CLI entry point
+│   ├── Main.java                   # App entry point (UI by default, CLI with --cli)
+│   ├── TaskManagerUI.java          # Swing desktop interface
 │   ├── Task.java                   # Task model
 │   ├── TaskStatus.java             # Status enum (TODO, IN_PROGRESS, DONE, CANCELLED)
 │   ├── Priority.java               # Priority enum (LOW, MEDIUM, HIGH, CRITICAL)
@@ -41,14 +43,29 @@ src/
 # Build
 mvn package -q
 
-# Run
+# Run the desktop UI
 java -cp target/task-manager-1.0.0.jar com.demo.Main
+
+# Run the CLI
+java -cp target/task-manager-1.0.0.jar com.demo.Main --cli
 
 # Run tests
 mvn test
 ```
 
-## Usage
+## Desktop UI
+
+The default app window lets you:
+
+- Add tasks with title, description, priority, due date, and assignee
+- Filter by status or overdue state
+- Sort by priority, due date, or creation order
+- Start, complete, cancel, assign, reprioritize, and delete selected tasks
+- See summary counts for total, status, and overdue tasks
+
+Due dates should use `yyyy-MM-dd`.
+
+## CLI Usage
 
 ```
 Task Manager CLI
