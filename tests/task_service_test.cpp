@@ -296,3 +296,179 @@ TEST_CASE("today_as_string returns valid YYYY-MM-DD format", "[date]") {
     CHECK(today.size() == 10);
     CHECK(is_valid_date(today));
 }
+
+// =============================================================================
+// Lifecycle State Transitions — Ported from Java
+// Ported from: TaskServiceTest.startTask_changesStatusToInProgress
+//              TaskServiceTest.completeTask_fromInProgress
+//              TaskServiceTest.cancelTask_fromTodo
+//              TaskServiceTest.startTask_failsForMissingId
+// =============================================================================
+
+TEST_CASE("startTask changes status to IN_PROGRESS", "[lifecycle]") {
+    TaskStore store;
+    TaskService service(store);
+    auto task = service.createTask("Task");
+    REQUIRE(task.has_value());
+
+    CHECK(service.startTask(task->get_id()) == TransitionResult::Success);
+
+    auto updated = service.getTask(task->get_id());
+    REQUIRE(updated.has_value());
+    CHECK(updated->get_status() == TaskStatus::IN_PROGRESS);
+}
+
+TEST_CASE("completeTask from IN_PROGRESS changes status to DONE", "[lifecycle]") {
+    TaskStore store;
+    TaskService service(store);
+    auto task = service.createTask("Task");
+    REQUIRE(task.has_value());
+
+    REQUIRE(service.startTask(task->get_id()) == TransitionResult::Success);
+    CHECK(service.completeTask(task->get_id()) == TransitionResult::Success);
+
+    auto updated = service.getTask(task->get_id());
+    REQUIRE(updated.has_value());
+    CHECK(updated->get_status() == TaskStatus::DONE);
+}
+
+TEST_CASE("cancelTask from TODO changes status to CANCELLED", "[lifecycle]") {
+    TaskStore store;
+    TaskService service(store);
+    auto task = service.createTask("Task");
+    REQUIRE(task.has_value());
+
+    CHECK(service.cancelTask(task->get_id()) == TransitionResult::Success);
+
+    auto updated = service.getTask(task->get_id());
+    REQUIRE(updated.has_value());
+    CHECK(updated->get_status() == TaskStatus::CANCELLED);
+}
+
+TEST_CASE("startTask returns NotFound for missing ID", "[lifecycle]") {
+    TaskStore store;
+    TaskService service(store);
+
+    CHECK(service.startTask(999) == TransitionResult::NotFound);
+}
+
+// =============================================================================
+// Lifecycle State Transitions — New tests required by Acceptance Criteria
+// =============================================================================
+
+// AC #2: TODO → DONE (direct completion without starting)
+TEST_CASE("completeTask from TODO changes status to DONE", "[lifecycle]") {
+    TaskStore store;
+    TaskService service(store);
+    auto task = service.createTask("Task");
+    REQUIRE(task.has_value());
+
+    CHECK(service.completeTask(task->get_id()) == TransitionResult::Success);
+
+    auto updated = service.getTask(task->get_id());
+    REQUIRE(updated.has_value());
+    CHECK(updated->get_status() == TaskStatus::DONE);
+}
+
+// AC #3: IN_PROGRESS → CANCELLED
+TEST_CASE("cancelTask from IN_PROGRESS changes status to CANCELLED", "[lifecycle]") {
+    TaskStore store;
+    TaskService service(store);
+    auto task = service.createTask("Task");
+    REQUIRE(task.has_value());
+
+    REQUIRE(service.startTask(task->get_id()) == TransitionResult::Success);
+    CHECK(service.cancelTask(task->get_id()) == TransitionResult::Success);
+
+    auto updated = service.getTask(task->get_id());
+    REQUIRE(updated.has_value());
+    CHECK(updated->get_status() == TaskStatus::CANCELLED);
+}
+
+// AC #4: DONE tasks cannot be modified
+TEST_CASE("startTask on DONE task returns InvalidTransition", "[lifecycle]") {
+    TaskStore store;
+    TaskService service(store);
+    auto task = service.createTask("Task");
+    REQUIRE(task.has_value());
+
+    REQUIRE(service.completeTask(task->get_id()) == TransitionResult::Success);
+    CHECK(service.startTask(task->get_id()) == TransitionResult::InvalidTransition);
+}
+
+TEST_CASE("completeTask on DONE task returns InvalidTransition", "[lifecycle]") {
+    TaskStore store;
+    TaskService service(store);
+    auto task = service.createTask("Task");
+    REQUIRE(task.has_value());
+
+    REQUIRE(service.completeTask(task->get_id()) == TransitionResult::Success);
+    CHECK(service.completeTask(task->get_id()) == TransitionResult::InvalidTransition);
+}
+
+TEST_CASE("cancelTask on DONE task returns InvalidTransition", "[lifecycle]") {
+    TaskStore store;
+    TaskService service(store);
+    auto task = service.createTask("Task");
+    REQUIRE(task.has_value());
+
+    REQUIRE(service.completeTask(task->get_id()) == TransitionResult::Success);
+    CHECK(service.cancelTask(task->get_id()) == TransitionResult::InvalidTransition);
+}
+
+// AC #5: CANCELLED tasks cannot be modified
+TEST_CASE("startTask on CANCELLED task returns InvalidTransition", "[lifecycle]") {
+    TaskStore store;
+    TaskService service(store);
+    auto task = service.createTask("Task");
+    REQUIRE(task.has_value());
+
+    REQUIRE(service.cancelTask(task->get_id()) == TransitionResult::Success);
+    CHECK(service.startTask(task->get_id()) == TransitionResult::InvalidTransition);
+}
+
+TEST_CASE("completeTask on CANCELLED task returns InvalidTransition", "[lifecycle]") {
+    TaskStore store;
+    TaskService service(store);
+    auto task = service.createTask("Task");
+    REQUIRE(task.has_value());
+
+    REQUIRE(service.cancelTask(task->get_id()) == TransitionResult::Success);
+    CHECK(service.completeTask(task->get_id()) == TransitionResult::InvalidTransition);
+}
+
+TEST_CASE("cancelTask on CANCELLED task returns InvalidTransition", "[lifecycle]") {
+    TaskStore store;
+    TaskService service(store);
+    auto task = service.createTask("Task");
+    REQUIRE(task.has_value());
+
+    REQUIRE(service.cancelTask(task->get_id()) == TransitionResult::Success);
+    CHECK(service.cancelTask(task->get_id()) == TransitionResult::InvalidTransition);
+}
+
+// AC #6: IN_PROGRESS task cannot be started again
+TEST_CASE("startTask on IN_PROGRESS task returns InvalidTransition", "[lifecycle]") {
+    TaskStore store;
+    TaskService service(store);
+    auto task = service.createTask("Task");
+    REQUIRE(task.has_value());
+
+    REQUIRE(service.startTask(task->get_id()) == TransitionResult::Success);
+    CHECK(service.startTask(task->get_id()) == TransitionResult::InvalidTransition);
+}
+
+// AC #7: NotFound for missing IDs (complete and cancel)
+TEST_CASE("completeTask returns NotFound for missing ID", "[lifecycle]") {
+    TaskStore store;
+    TaskService service(store);
+
+    CHECK(service.completeTask(999) == TransitionResult::NotFound);
+}
+
+TEST_CASE("cancelTask returns NotFound for missing ID", "[lifecycle]") {
+    TaskStore store;
+    TaskService service(store);
+
+    CHECK(service.cancelTask(999) == TransitionResult::NotFound);
+}

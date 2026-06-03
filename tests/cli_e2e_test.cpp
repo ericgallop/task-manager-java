@@ -117,6 +117,177 @@ TEST_CASE("E2E: CLI Add Task with default priority shows MEDIUM", "[e2e][create]
 }
 
 // =============================================================================
+// E2E: Start Task — happy path (TODO → IN_PROGRESS)
+// =============================================================================
+
+TEST_CASE("E2E: CLI Start Task shows IN_PROGRESS message", "[e2e][lifecycle]") {
+    // 1. Add a task, 2. Start it, 3. Exit
+    std::string input =
+        "1\n"                     // Add task
+        "Start me\n"             // Title
+        "\n"                      // Default priority
+        "\n"                      // No description
+        "\n"                      // No due date
+        "\n"                      // No assignee
+        "3\n"                     // Start task
+        "1\n"                     // Task ID
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Task 1 is now IN_PROGRESS.") != std::string::npos);
+}
+
+// =============================================================================
+// E2E: Complete Task — happy path (TODO → DONE)
+// =============================================================================
+
+TEST_CASE("E2E: CLI Complete Task shows completed message", "[e2e][lifecycle]") {
+    // 1. Add a task, 2. Complete it directly, 3. Exit
+    std::string input =
+        "1\n"                     // Add task
+        "Complete me\n"          // Title
+        "\n"                      // Default priority
+        "\n"                      // No description
+        "\n"                      // No due date
+        "\n"                      // No assignee
+        "4\n"                     // Complete task
+        "1\n"                     // Task ID
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Task 1 completed.") != std::string::npos);
+}
+
+// =============================================================================
+// E2E: Cancel Task — happy path (TODO → CANCELLED)
+// =============================================================================
+
+TEST_CASE("E2E: CLI Cancel Task shows cancelled message", "[e2e][lifecycle]") {
+    // 1. Add a task, 2. Cancel it, 3. Exit
+    std::string input =
+        "1\n"                     // Add task
+        "Cancel me\n"            // Title
+        "\n"                      // Default priority
+        "\n"                      // No description
+        "\n"                      // No due date
+        "\n"                      // No assignee
+        "5\n"                     // Cancel task
+        "1\n"                     // Task ID
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Task 1 cancelled.") != std::string::npos);
+}
+
+// =============================================================================
+// E2E: Start Task on non-existent ID — not found error
+// =============================================================================
+
+TEST_CASE("E2E: CLI Start Task with missing ID shows not found", "[e2e][lifecycle]") {
+    std::string input =
+        "3\n"                     // Start task (no tasks exist)
+        "999\n"                   // Non-existent ID
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Task not found.") != std::string::npos);
+}
+
+// =============================================================================
+// E2E: Start Task on already started task — invalid transition
+// =============================================================================
+
+TEST_CASE("E2E: CLI Start Task on IN_PROGRESS task shows error", "[e2e][lifecycle]") {
+    // 1. Add a task, 2. Start it, 3. Try starting again, 4. Exit
+    std::string input =
+        "1\n"                     // Add task
+        "Double start\n"         // Title
+        "\n\n\n\n"               // Default optional fields
+        "3\n"                     // Start task
+        "1\n"                     // Task ID
+        "3\n"                     // Start task again
+        "1\n"                     // Same task ID
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Task 1 is now IN_PROGRESS.") != std::string::npos);
+    CHECK(output.find("Cannot start task") != std::string::npos);
+    CHECK(output.find("task must be in TODO status") != std::string::npos);
+}
+
+// =============================================================================
+// E2E: Complete Task on DONE task — invalid transition
+// =============================================================================
+
+TEST_CASE("E2E: CLI Complete Task on DONE task shows error", "[e2e][lifecycle]") {
+    // 1. Add a task, 2. Complete it, 3. Try completing again, 4. Exit
+    std::string input =
+        "1\n"                     // Add task
+        "Double complete\n"      // Title
+        "\n\n\n\n"               // Default optional fields
+        "4\n"                     // Complete task
+        "1\n"                     // Task ID
+        "4\n"                     // Complete task again
+        "1\n"                     // Same task ID
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Task 1 completed.") != std::string::npos);
+    CHECK(output.find("Cannot complete task") != std::string::npos);
+    CHECK(output.find("already completed or cancelled") != std::string::npos);
+}
+
+// =============================================================================
+// E2E: Cancel Task on CANCELLED task — invalid transition
+// =============================================================================
+
+TEST_CASE("E2E: CLI Cancel Task on CANCELLED task shows error", "[e2e][lifecycle]") {
+    // 1. Add a task, 2. Cancel it, 3. Try cancelling again, 4. Exit
+    std::string input =
+        "1\n"                     // Add task
+        "Double cancel\n"        // Title
+        "\n\n\n\n"               // Default optional fields
+        "5\n"                     // Cancel task
+        "1\n"                     // Task ID
+        "5\n"                     // Cancel task again
+        "1\n"                     // Same task ID
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Task 1 cancelled.") != std::string::npos);
+    CHECK(output.find("Cannot cancel task") != std::string::npos);
+    CHECK(output.find("already completed or cancelled") != std::string::npos);
+}
+
+// =============================================================================
+// E2E: Full lifecycle — TODO → IN_PROGRESS → DONE
+// =============================================================================
+
+TEST_CASE("E2E: CLI Full lifecycle TODO to IN_PROGRESS to DONE", "[e2e][lifecycle]") {
+    std::string input =
+        "1\n"                     // Add task
+        "Lifecycle task\n"       // Title
+        "\n\n\n\n"               // Default optional fields
+        "3\n"                     // Start task
+        "1\n"                     // Task ID
+        "4\n"                     // Complete task
+        "1\n"                     // Task ID
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Task 1 is now IN_PROGRESS.") != std::string::npos);
+    CHECK(output.find("Task 1 completed.") != std::string::npos);
+}
+
+// =============================================================================
 // E2E: Add Task with blank title — error, no "Created:" output
 // =============================================================================
 
