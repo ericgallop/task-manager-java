@@ -59,14 +59,22 @@ bool Task::is_overdue() const {
     return today > due_date_;
 }
 
-void Task::complete() { status_ = TaskStatus::DONE; }
-void Task::cancel() { status_ = TaskStatus::CANCELLED; }
+TransitionResult Task::complete() {
+    if (is_terminal(status_)) return TransitionResult::InvalidTransition;
+    status_ = TaskStatus::DONE;
+    return TransitionResult::Success;
+}
 
-void Task::start_progress() {
-    if (status_ != TaskStatus::TODO) {
-        throw std::logic_error("Task must be in TODO to start");
-    }
+TransitionResult Task::cancel() {
+    if (is_terminal(status_)) return TransitionResult::InvalidTransition;
+    status_ = TaskStatus::CANCELLED;
+    return TransitionResult::Success;
+}
+
+TransitionResult Task::start_progress() {
+    if (status_ != TaskStatus::TODO) return TransitionResult::InvalidTransition;
     status_ = TaskStatus::IN_PROGRESS;
+    return TransitionResult::Success;
 }
 
 std::string Task::to_string() const {

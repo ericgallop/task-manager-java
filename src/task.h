@@ -30,9 +30,9 @@ public:
     // Status helpers
     bool is_completed() const;
     bool is_overdue() const;
-    void complete();
-    void cancel();
-    void start_progress();
+    TransitionResult complete();
+    TransitionResult cancel();
+    TransitionResult start_progress();
 
     std::string to_string() const;
 
