@@ -472,3 +472,70 @@ TEST_CASE("cancelTask returns NotFound for missing ID", "[lifecycle]") {
 
     CHECK(service.cancelTask(999) == TransitionResult::NotFound);
 }
+
+// =============================================================================
+// Update Task Properties — Assign & Priority
+// Ported from: TaskServiceTest.assignTask_setsAssignee
+//              TaskServiceTest.updatePriority_changesPriority
+// Plus new tests for clearing assignee and not-found cases
+// =============================================================================
+
+// AC1: Assign by name
+TEST_CASE("assignTask sets assignee", "[update][assign]") {
+    TaskStore store;
+    TaskService service(store);
+    auto task = service.createTask("Task");
+    REQUIRE(task.has_value());
+
+    CHECK(service.assignTask(task->get_id(), "alice"));
+
+    auto updated = service.getTask(task->get_id());
+    REQUIRE(updated.has_value());
+    CHECK(updated->get_assignee() == "alice");
+}
+
+// AC2: Clear assignee with empty string
+TEST_CASE("assignTask with empty string clears assignee", "[update][assign]") {
+    TaskStore store;
+    TaskService service(store);
+    auto task = service.createTask("Task", Priority::MEDIUM, "", "", "bob");
+    REQUIRE(task.has_value());
+    REQUIRE(task->get_assignee() == "bob");
+
+    CHECK(service.assignTask(task->get_id(), ""));
+
+    auto updated = service.getTask(task->get_id());
+    REQUIRE(updated.has_value());
+    CHECK(updated->get_assignee() == "");
+}
+
+// AC3: Change priority
+TEST_CASE("updatePriority changes priority", "[update][priority]") {
+    TaskStore store;
+    TaskService service(store);
+    auto task = service.createTask("Task");
+    REQUIRE(task.has_value());
+    REQUIRE(task->get_priority() == Priority::MEDIUM);
+
+    CHECK(service.updatePriority(task->get_id(), Priority::CRITICAL));
+
+    auto updated = service.getTask(task->get_id());
+    REQUIRE(updated.has_value());
+    CHECK(updated->get_priority() == Priority::CRITICAL);
+}
+
+// AC4: Assign returns false for non-existent ID
+TEST_CASE("assignTask returns false for missing ID", "[update][assign]") {
+    TaskStore store;
+    TaskService service(store);
+
+    CHECK_FALSE(service.assignTask(999, "alice"));
+}
+
+// AC4: Update priority returns false for non-existent ID
+TEST_CASE("updatePriority returns false for missing ID", "[update][priority]") {
+    TaskStore store;
+    TaskService service(store);
+
+    CHECK_FALSE(service.updatePriority(999, Priority::HIGH));
+}
