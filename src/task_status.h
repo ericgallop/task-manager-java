@@ -19,4 +19,20 @@ inline std::string task_status_to_string(TaskStatus s) {
     return "TODO";
 }
 
+// Result of a task lifecycle state transition attempt.
+enum class TransitionResult {
+    Success,          // Transition applied successfully
+    NotFound,         // Task ID does not exist
+    InvalidTransition // Transition not allowed from current state
+};
+
+inline std::string transition_result_to_string(TransitionResult r) {
+    switch (r) {
+        case TransitionResult::Success:           return "Success";
+        case TransitionResult::NotFound:          return "NotFound";
+        case TransitionResult::InvalidTransition: return "InvalidTransition";
+    }
+    return "Success";
+}
+
 #endif // TASK_STATUS_H
