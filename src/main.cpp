@@ -111,10 +111,14 @@ static void assignTask(TaskService& service) {
     std::cout << "Assignee name: ";
     std::string assignee;
     std::getline(std::cin, assignee);
-    if (service.assignTask(id, assignee))
-        std::cout << "Assigned task " << id << " to " << assignee << std::endl;
-    else
+    if (service.assignTask(id, assignee)) {
+        if (assignee.empty())
+            std::cout << "Cleared assignee from task " << id << std::endl;
+        else
+            std::cout << "Assigned task " << id << " to " << assignee << std::endl;
+    } else {
         std::cout << "Task not found." << std::endl;
+    }
 }
 
 static void setPriority(TaskService& service) {
