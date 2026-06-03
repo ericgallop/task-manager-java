@@ -310,3 +310,98 @@ TEST_CASE("E2E: CLI Add Task with blank title does not create task", "[e2e][crea
     std::string err = run_cli_stderr(input);
     CHECK(err.find("Title cannot be empty.") != std::string::npos);
 }
+
+// =============================================================================
+// E2E: Assign Task — happy path (AC1)
+// =============================================================================
+
+TEST_CASE("E2E: CLI Assign Task shows assigned message", "[e2e][update][assign]") {
+    // 1. Add a task, 2. Assign it, 3. Exit
+    std::string input =
+        "1\n"                     // Add task
+        "Assign me\n"            // Title
+        "\n\n\n\n"               // Default optional fields
+        "6\n"                     // Assign task
+        "1\n"                     // Task ID
+        "alice\n"                 // Assignee name
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Assigned task 1 to alice") != std::string::npos);
+}
+
+// =============================================================================
+// E2E: Clear Assignee — empty input (AC2)
+// =============================================================================
+
+TEST_CASE("E2E: CLI Clear Assignee shows cleared message", "[e2e][update][assign]") {
+    // 1. Add a task with assignee, 2. Clear the assignee, 3. Exit
+    std::string input =
+        "1\n"                     // Add task
+        "Clear assignee\n"       // Title
+        "\n"                      // Default priority
+        "\n"                      // No description
+        "\n"                      // No due date
+        "bob\n"                   // Assignee = bob
+        "6\n"                     // Assign task
+        "1\n"                     // Task ID
+        "\n"                      // Empty assignee → clear
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Cleared assignee from task 1") != std::string::npos);
+}
+
+// =============================================================================
+// E2E: Set Priority — happy path (AC3)
+// =============================================================================
+
+TEST_CASE("E2E: CLI Set Priority shows updated message", "[e2e][update][priority]") {
+    // 1. Add a task, 2. Change priority, 3. Exit
+    std::string input =
+        "1\n"                     // Add task
+        "Priority task\n"        // Title
+        "\n\n\n\n"               // Default optional fields
+        "7\n"                     // Set priority
+        "1\n"                     // Task ID
+        "CRITICAL\n"             // New priority
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Priority updated.") != std::string::npos);
+}
+
+// =============================================================================
+// E2E: Assign Task — not found (AC4)
+// =============================================================================
+
+TEST_CASE("E2E: CLI Assign Task with missing ID shows not found", "[e2e][update][assign]") {
+    std::string input =
+        "6\n"                     // Assign task (no tasks exist)
+        "999\n"                   // Non-existent ID
+        "alice\n"                 // Assignee name
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Task not found.") != std::string::npos);
+}
+
+// =============================================================================
+// E2E: Set Priority — not found (AC4)
+// =============================================================================
+
+TEST_CASE("E2E: CLI Set Priority with missing ID shows not found", "[e2e][update][priority]") {
+    std::string input =
+        "7\n"                     // Set priority (no tasks exist)
+        "999\n"                   // Non-existent ID
+        "HIGH\n"                  // Priority
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Task not found.") != std::string::npos);
+}
