@@ -24,6 +24,15 @@ add_executable(task_tests
 )
 target_link_libraries(task_tests PRIVATE task_lib Catch2::Catch2WithMain)
 
+add_executable(cli_e2e_tests
+    tests/cli_e2e_test.cpp
+)
+target_link_libraries(cli_e2e_tests PRIVATE task_lib Catch2::Catch2WithMain)
+
+# E2E tests need the CLI binary to be built first
+add_dependencies(cli_e2e_tests task_manager)
+
 include(CTest)
 include(Catch)
 catch_discover_tests(task_tests)
+catch_discover_tests(cli_e2e_tests WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
