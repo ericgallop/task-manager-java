@@ -5,6 +5,10 @@
 
 TaskService::TaskService(TaskStore& store) : store_(store) {}
 
+// =============================================================================
+// Create — primary method for the "Create a New Task" story.
+// All creation-related business rules are centralized here.
+// =============================================================================
 std::optional<Task> TaskService::createTask(
     const std::string& title,
     Priority priority,
@@ -36,4 +40,49 @@ std::optional<Task> TaskService::createTask(
     task.set_assignee(assignee);
 
     return store_.save(task);
+}
+
+// =============================================================================
+// Read
+// =============================================================================
+std::optional<Task> TaskService::getTask(int id) const {
+    return store_.find_by_id(id);
+}
+
+std::vector<Task> TaskService::getAllTasks() const {
+    return store_.find_all();
+}
+
+std::vector<Task> TaskService::getPendingTasks() const {
+    return store_.find_by_status(TaskStatus::TODO);
+}
+
+// =============================================================================
+// Update — state transitions via the store's update helper
+// =============================================================================
+bool TaskService::startTask(int id) {
+    return store_.update(id, [](Task& t) { t.start_progress(); });
+}
+
+bool TaskService::completeTask(int id) {
+    return store_.update(id, [](Task& t) { t.complete(); });
+}
+
+bool TaskService::cancelTask(int id) {
+    return store_.update(id, [](Task& t) { t.cancel(); });
+}
+
+bool TaskService::assignTask(int id, const std::string& assignee) {
+    return store_.update(id, [&assignee](Task& t) { t.set_assignee(assignee); });
+}
+
+bool TaskService::updatePriority(int id, Priority priority) {
+    return store_.update(id, [priority](Task& t) { t.set_priority(priority); });
+}
+
+// =============================================================================
+// Delete
+// =============================================================================
+bool TaskService::deleteTask(int id) {
+    return store_.delete_task(id);
 }
