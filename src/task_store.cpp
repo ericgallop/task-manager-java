@@ -70,3 +70,11 @@ bool TaskStore::update(int id, std::function<void(Task&)> mutator) {
     mutator(it->second);
     return true;
 }
+
+TransitionResult TaskStore::update_status(int id, std::function<TransitionResult(Task&)> transition) {
+    auto it = tasks_.find(id);
+    if (it == tasks_.end()) {
+        return TransitionResult::NotFound;
+    }
+    return transition(it->second);
+}

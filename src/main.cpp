@@ -57,28 +57,52 @@ static void listTasks(TaskService& service) {
 static void startTask(TaskService& service) {
     int id = readId("Task ID to start: ");
     if (id < 0) return;
-    if (service.startTask(id))
-        std::cout << "Task " << id << " is now IN_PROGRESS." << std::endl;
-    else
-        std::cout << "Task not found or already started." << std::endl;
+    auto result = service.startTask(id);
+    switch (result) {
+        case TransitionResult::Success:
+            std::cout << "Task " << id << " is now IN_PROGRESS." << std::endl;
+            break;
+        case TransitionResult::NotFound:
+            std::cout << "Task not found." << std::endl;
+            break;
+        case TransitionResult::InvalidTransition:
+            std::cout << "Cannot start task — task must be in TODO status." << std::endl;
+            break;
+    }
 }
 
 static void completeTask(TaskService& service) {
     int id = readId("Task ID to complete: ");
     if (id < 0) return;
-    if (service.completeTask(id))
-        std::cout << "Task " << id << " completed." << std::endl;
-    else
-        std::cout << "Task not found." << std::endl;
+    auto result = service.completeTask(id);
+    switch (result) {
+        case TransitionResult::Success:
+            std::cout << "Task " << id << " completed." << std::endl;
+            break;
+        case TransitionResult::NotFound:
+            std::cout << "Task not found." << std::endl;
+            break;
+        case TransitionResult::InvalidTransition:
+            std::cout << "Cannot complete task — task is already completed or cancelled." << std::endl;
+            break;
+    }
 }
 
 static void cancelTask(TaskService& service) {
     int id = readId("Task ID to cancel: ");
     if (id < 0) return;
-    if (service.cancelTask(id))
-        std::cout << "Task " << id << " cancelled." << std::endl;
-    else
-        std::cout << "Task not found." << std::endl;
+    auto result = service.cancelTask(id);
+    switch (result) {
+        case TransitionResult::Success:
+            std::cout << "Task " << id << " cancelled." << std::endl;
+            break;
+        case TransitionResult::NotFound:
+            std::cout << "Task not found." << std::endl;
+            break;
+        case TransitionResult::InvalidTransition:
+            std::cout << "Cannot cancel task — task is already completed or cancelled." << std::endl;
+            break;
+    }
 }
 
 static void assignTask(TaskService& service) {

@@ -27,6 +27,11 @@ public:
     // Returns true if task was found and updated, false otherwise.
     bool update(int id, std::function<void(Task&)> mutator);
 
+    // Transition helper: find task by id, apply transition lambda.
+    // Returns NotFound if id doesn't exist, otherwise returns
+    // the TransitionResult from the transition lambda.
+    TransitionResult update_status(int id, std::function<TransitionResult(Task&)> transition);
+
 private:
     std::map<int, Task> tasks_;
     int next_id_;

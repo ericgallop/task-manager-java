@@ -58,18 +58,18 @@ std::vector<Task> TaskService::getPendingTasks() const {
 }
 
 // =============================================================================
-// Update — state transitions via the store's update helper
+// Update — state transitions via the store's update_status helper
 // =============================================================================
-bool TaskService::startTask(int id) {
-    return store_.update(id, [](Task& t) { t.start_progress(); });
+TransitionResult TaskService::startTask(int id) {
+    return store_.update_status(id, [](Task& t) { return t.start_progress(); });
 }
 
-bool TaskService::completeTask(int id) {
-    return store_.update(id, [](Task& t) { t.complete(); });
+TransitionResult TaskService::completeTask(int id) {
+    return store_.update_status(id, [](Task& t) { return t.complete(); });
 }
 
-bool TaskService::cancelTask(int id) {
-    return store_.update(id, [](Task& t) { t.cancel(); });
+TransitionResult TaskService::cancelTask(int id) {
+    return store_.update_status(id, [](Task& t) { return t.cancel(); });
 }
 
 bool TaskService::assignTask(int id, const std::string& assignee) {

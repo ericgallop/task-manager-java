@@ -26,10 +26,10 @@ public:
     std::vector<Task> getAllTasks() const;
     std::vector<Task> getPendingTasks() const;
 
-    // --- Update ---
-    bool startTask(int id);
-    bool completeTask(int id);
-    bool cancelTask(int id);
+    // --- Update — state transitions ---
+    TransitionResult startTask(int id);
+    TransitionResult completeTask(int id);
+    TransitionResult cancelTask(int id);
     bool assignTask(int id, const std::string& assignee);
     bool updatePriority(int id, Priority priority);
 
