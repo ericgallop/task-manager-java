@@ -107,6 +107,12 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
+    public List<Task> getTasksSortedByCreationOrder() {
+        return repository.findAll().stream()
+                .sorted(Comparator.comparingInt(Task::getId))
+                .collect(Collectors.toList());
+    }
+
     public boolean startTask(int id) {
         return repository.findById(id).map(t -> {
             t.startProgress();
