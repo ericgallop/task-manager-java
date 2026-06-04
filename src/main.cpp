@@ -137,10 +137,25 @@ static void setPriority(TaskService& service) {
 static void removeTask(TaskService& service) {
     int id = readId("Task ID to remove: ");
     if (id < 0) return;
-    if (service.deleteTask(id))
-        std::cout << "Task " << id << " removed." << std::endl;
-    else
+
+    // Check that the task exists before prompting for confirmation
+    auto task = service.getTask(id);
+    if (!task.has_value()) {
         std::cout << "Task not found." << std::endl;
+        return;
+    }
+
+    // Confirmation prompt
+    std::cout << "Are you sure you want to delete task #" << id << "? (y/n): ";
+    std::string answer;
+    std::getline(std::cin, answer);
+
+    if (answer == "y" || answer == "Y") {
+        service.deleteTask(id);
+        std::cout << "Task " << id << " removed." << std::endl;
+    } else {
+        std::cout << "Delete cancelled." << std::endl;
+    }
 }
 
 static void printMenu() {
