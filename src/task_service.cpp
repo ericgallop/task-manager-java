@@ -58,18 +58,37 @@ std::vector<Task> TaskService::getPendingTasks() const {
 }
 
 std::vector<Task> TaskService::getTasksSortedByPriority() const {
-    // TODO: implement in step 2
-    return {};
+    auto tasks = store_.find_all();
+    std::sort(tasks.begin(), tasks.end(), [](const Task& a, const Task& b) {
+        return static_cast<int>(a.get_priority()) > static_cast<int>(b.get_priority());
+    });
+    return tasks;
 }
 
 std::vector<Task> TaskService::getOverdueTasks() const {
-    // TODO: implement in step 2
-    return {};
+    auto all = store_.find_all();
+    std::vector<Task> overdue;
+    std::copy_if(all.begin(), all.end(), std::back_inserter(overdue),
+                 [](const Task& t) { return t.is_overdue(); });
+    return overdue;
 }
 
 TaskSummary TaskService::getSummary() const {
-    // TODO: implement in step 2
-    return {};
+    auto all = store_.find_all();
+    TaskSummary summary;
+    summary.total = static_cast<int>(all.size());
+    for (const auto& t : all) {
+        switch (t.get_status()) {
+            case TaskStatus::TODO:        ++summary.todo; break;
+            case TaskStatus::IN_PROGRESS: ++summary.in_progress; break;
+            case TaskStatus::DONE:        ++summary.done; break;
+            case TaskStatus::CANCELLED:   ++summary.cancelled; break;
+        }
+        if (t.is_overdue()) {
+            ++summary.overdue;
+        }
+    }
+    return summary;
 }
 
 // =============================================================================
