@@ -1,7 +1,4 @@
 com/demo/TaskManagerUI.class
-com/demo/TaskSummary.class
-com/demo/TaskService.class
 com/demo/TaskManagerUI$TaskTableModel.class
 com/demo/TaskManagerUI$TaskCellRenderer.class
-com/demo/TaskManager.class
 com/demo/TaskManagerUI$TaskAction.class
