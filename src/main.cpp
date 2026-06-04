@@ -18,6 +18,26 @@ static int readId(const std::string& prompt) {
     }
 }
 
+// ANSI color codes for task status display
+static const char* ANSI_RESET  = "\033[0m";
+static const char* ANSI_YELLOW = "\033[33m";  // overdue
+static const char* ANSI_GREEN  = "\033[32m";  // done
+static const char* ANSI_DIM    = "\033[2m";   // cancelled
+
+// Prints a single task line with ANSI color based on status.
+// Precedence: overdue (yellow) > DONE (green) > CANCELLED (dim) > default (no color).
+static void print_task_colored(const Task& task) {
+    if (task.is_overdue()) {
+        std::cout << ANSI_YELLOW << task.to_string() << ANSI_RESET << std::endl;
+    } else if (task.get_status() == TaskStatus::DONE) {
+        std::cout << ANSI_GREEN << task.to_string() << ANSI_RESET << std::endl;
+    } else if (task.get_status() == TaskStatus::CANCELLED) {
+        std::cout << ANSI_DIM << task.to_string() << ANSI_RESET << std::endl;
+    } else {
+        std::cout << task.to_string() << std::endl;
+    }
+}
+
 static void addTask(TaskService& service) {
     std::string title, priority_str, description, due_date, assignee;
 
@@ -44,13 +64,13 @@ static void addTask(TaskService& service) {
 }
 
 static void listTasks(TaskService& service) {
-    auto tasks = service.getAllTasks();
+    auto tasks = service.getTasksSortedByPriority();
     if (tasks.empty()) {
         std::cout << "No tasks." << std::endl;
         return;
     }
     for (const auto& task : tasks) {
-        std::cout << task.to_string() << std::endl;
+        print_task_colored(task);
     }
 }
 
@@ -158,6 +178,28 @@ static void removeTask(TaskService& service) {
     }
 }
 
+static void showSummary(TaskService& service) {
+    auto s = service.getSummary();
+    std::cout << "Total: " << s.total
+              << " | TODO: " << s.todo
+              << " | In Progress: " << s.in_progress
+              << " | Done: " << s.done
+              << " | Cancelled: " << s.cancelled
+              << " | Overdue: " << s.overdue
+              << std::endl;
+}
+
+static void showOverdue(TaskService& service) {
+    auto tasks = service.getOverdueTasks();
+    if (tasks.empty()) {
+        std::cout << "No overdue tasks." << std::endl;
+        return;
+    }
+    for (const auto& task : tasks) {
+        std::cout << ANSI_YELLOW << task.to_string() << ANSI_RESET << std::endl;
+    }
+}
+
 static void printMenu() {
     std::cout << "\n 1. Add task" << std::endl;
     std::cout << " 2. List all tasks" << std::endl;
@@ -167,6 +209,8 @@ static void printMenu() {
     std::cout << " 6. Assign task" << std::endl;
     std::cout << " 7. Set priority" << std::endl;
     std::cout << " 8. Remove task" << std::endl;
+    std::cout << " 9. Summary" << std::endl;
+    std::cout << "10. Show overdue" << std::endl;
     std::cout << " 0. Exit" << std::endl;
     std::cout << "Choose: ";
 }
@@ -190,16 +234,18 @@ int main() {
             choice = choice.substr(start, choice.find_last_not_of(" \t") - start + 1);
         }
 
-        if (choice == "1")       addTask(service);
-        else if (choice == "2")  listTasks(service);
-        else if (choice == "3")  startTask(service);
-        else if (choice == "4")  completeTask(service);
-        else if (choice == "5")  cancelTask(service);
-        else if (choice == "6")  assignTask(service);
-        else if (choice == "7")  setPriority(service);
-        else if (choice == "8")  removeTask(service);
-        else if (choice == "0")  running = false;
-        else                     std::cout << "Invalid option." << std::endl;
+        if (choice == "1")        addTask(service);
+        else if (choice == "2")   listTasks(service);
+        else if (choice == "3")   startTask(service);
+        else if (choice == "4")   completeTask(service);
+        else if (choice == "5")   cancelTask(service);
+        else if (choice == "6")   assignTask(service);
+        else if (choice == "7")   setPriority(service);
+        else if (choice == "8")   removeTask(service);
+        else if (choice == "9")   showSummary(service);
+        else if (choice == "10")  showOverdue(service);
+        else if (choice == "0")   running = false;
+        else                      std::cout << "Invalid option." << std::endl;
     }
 
     std::cout << "Goodbye!" << std::endl;
