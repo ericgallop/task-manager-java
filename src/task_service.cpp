@@ -57,6 +57,21 @@ std::vector<Task> TaskService::getPendingTasks() const {
     return store_.find_by_status(TaskStatus::TODO);
 }
 
+std::vector<Task> TaskService::getTasksSortedByPriority() const {
+    // TODO: implement in step 2
+    return {};
+}
+
+std::vector<Task> TaskService::getOverdueTasks() const {
+    // TODO: implement in step 2
+    return {};
+}
+
+TaskSummary TaskService::getSummary() const {
+    // TODO: implement in step 2
+    return {};
+}
+
 // =============================================================================
 // Update — state transitions via the store's update_status helper
 // =============================================================================

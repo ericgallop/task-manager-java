@@ -3,6 +3,7 @@
 
 #include "task.h"
 #include "task_store.h"
+#include "task_summary.h"
 #include "priority.h"
 #include <optional>
 #include <string>
@@ -25,6 +26,9 @@ public:
     std::optional<Task> getTask(int id) const;
     std::vector<Task> getAllTasks() const;
     std::vector<Task> getPendingTasks() const;
+    std::vector<Task> getTasksSortedByPriority() const;
+    std::vector<Task> getOverdueTasks() const;
+    TaskSummary getSummary() const;
 
     // --- Update — state transitions ---
     TransitionResult startTask(int id);
