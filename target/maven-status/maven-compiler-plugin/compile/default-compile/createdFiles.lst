@@ -1,0 +1,13 @@
+com/demo/TaskManagerUI.class
+com/demo/TaskSummary.class
+com/demo/Priority.class
+com/demo/TaskService.class
+com/demo/TaskRepository.class
+com/demo/TaskManagerUI$TaskTableModel.class
+com/demo/Main.class
+com/demo/TaskStatus.class
+com/demo/TaskManagerUI$TaskCellRenderer.class
+com/demo/Task.class
+com/demo/TaskManager.class
+com/demo/TaskManagerUI$TaskAction.class
+com/demo/InMemoryTaskRepository.class

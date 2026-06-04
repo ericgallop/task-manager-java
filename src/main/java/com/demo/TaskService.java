@@ -1,6 +1,7 @@
 package com.demo;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -49,6 +50,31 @@ public class TaskService {
         return repository.findAll().stream()
                 .filter(Task::isOverdue)
                 .collect(Collectors.toList());
+    }
+
+    public List<Task> getCancelledTasks() {
+        return repository.findByStatus(TaskStatus.CANCELLED);
+    }
+
+    public List<Task> getFilteredTasks(String filter) {
+        switch (filter) {
+            case "all":
+                return getTasksSortedByPriority();
+            case "todo":
+                return repository.findByStatus(TaskStatus.TODO);
+            case "in_progress":
+                return repository.findByStatus(TaskStatus.IN_PROGRESS);
+            case "done":
+                return repository.findByStatus(TaskStatus.DONE);
+            case "cancelled":
+                return repository.findByStatus(TaskStatus.CANCELLED);
+            case "overdue":
+                return repository.findAll().stream()
+                        .filter(Task::isOverdue)
+                        .collect(Collectors.toList());
+            default:
+                return new ArrayList<>();
+        }
     }
 
     public List<Task> getTasksByPriority(Priority priority) {
