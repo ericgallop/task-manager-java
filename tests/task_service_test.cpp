@@ -539,3 +539,320 @@ TEST_CASE("updatePriority returns false for missing ID", "[update][priority]") {
 
     CHECK_FALSE(service.updatePriority(999, Priority::HIGH));
 }
+
+// =============================================================================
+// View & List Tasks — getTasksSortedByPriority
+// Ported from: TaskServiceTest.getTasksSortedByPriority
+// =============================================================================
+
+TEST_CASE("getTasksSortedByPriority returns tasks ordered CRITICAL first", "[list][sort]") {
+    TaskStore store;
+    TaskService service(store);
+
+    // Create tasks with mixed priorities (deliberately not in order)
+    service.createTask("Low task", Priority::LOW, "", "", "");
+    service.createTask("Critical task", Priority::CRITICAL, "", "", "");
+    service.createTask("Medium task", Priority::MEDIUM, "", "", "");
+    service.createTask("High task", Priority::HIGH, "", "", "");
+
+    auto sorted = service.getTasksSortedByPriority();
+    REQUIRE(sorted.size() == 4);
+    CHECK(sorted[0].get_priority() == Priority::CRITICAL);
+    CHECK(sorted[0].get_title() == "Critical task");
+    CHECK(sorted[1].get_priority() == Priority::HIGH);
+    CHECK(sorted[1].get_title() == "High task");
+    CHECK(sorted[2].get_priority() == Priority::MEDIUM);
+    CHECK(sorted[2].get_title() == "Medium task");
+    CHECK(sorted[3].get_priority() == Priority::LOW);
+    CHECK(sorted[3].get_title() == "Low task");
+}
+
+TEST_CASE("getTasksSortedByPriority returns empty vector when no tasks exist", "[list][sort]") {
+    TaskStore store;
+    TaskService service(store);
+
+    auto sorted = service.getTasksSortedByPriority();
+    CHECK(sorted.empty());
+}
+
+// =============================================================================
+// View & List Tasks — getOverdueTasks
+// =============================================================================
+
+TEST_CASE("getOverdueTasks returns only overdue tasks", "[list][overdue]") {
+    TaskStore store;
+    TaskService service(store);
+
+    // Overdue TODO task (past due date, non-terminal status)
+    service.createTask("Overdue TODO", Priority::MEDIUM, "", "2020-01-01", "");
+    // Overdue IN_PROGRESS task
+    auto ip = service.createTask("Overdue IP", Priority::HIGH, "", "2020-06-15", "");
+    REQUIRE(ip.has_value());
+    service.startTask(ip->get_id());
+    // Not overdue — future due date
+    service.createTask("Future task", Priority::LOW, "", "2099-12-31", "");
+    // Not overdue — no due date
+    service.createTask("No date task", Priority::MEDIUM, "", "", "");
+
+    auto overdue = service.getOverdueTasks();
+    REQUIRE(overdue.size() == 2);
+    // Both overdue tasks should be present
+    CHECK(overdue[0].get_title() == "Overdue TODO");
+    CHECK(overdue[1].get_title() == "Overdue IP");
+}
+
+TEST_CASE("getOverdueTasks excludes DONE tasks even with past due dates", "[list][overdue]") {
+    TaskStore store;
+    TaskService service(store);
+
+    auto task = service.createTask("Done past due", Priority::MEDIUM, "", "2020-01-01", "");
+    REQUIRE(task.has_value());
+    REQUIRE(service.completeTask(task->get_id()) == TransitionResult::Success);
+
+    auto overdue = service.getOverdueTasks();
+    CHECK(overdue.empty());
+}
+
+TEST_CASE("getOverdueTasks excludes CANCELLED tasks even with past due dates", "[list][overdue]") {
+    TaskStore store;
+    TaskService service(store);
+
+    auto task = service.createTask("Cancelled past due", Priority::HIGH, "", "2020-01-01", "");
+    REQUIRE(task.has_value());
+    REQUIRE(service.cancelTask(task->get_id()) == TransitionResult::Success);
+
+    auto overdue = service.getOverdueTasks();
+    CHECK(overdue.empty());
+}
+
+TEST_CASE("getOverdueTasks excludes tasks with no due date", "[list][overdue]") {
+    TaskStore store;
+    TaskService service(store);
+
+    service.createTask("No date", Priority::MEDIUM, "", "", "");
+    service.createTask("Also no date", Priority::HIGH, "", "", "");
+
+    auto overdue = service.getOverdueTasks();
+    CHECK(overdue.empty());
+}
+
+TEST_CASE("getOverdueTasks returns empty vector when no tasks are overdue", "[list][overdue]") {
+    TaskStore store;
+    TaskService service(store);
+
+    // All tasks have future due dates
+    service.createTask("Future 1", Priority::LOW, "", "2099-01-01", "");
+    service.createTask("Future 2", Priority::HIGH, "", "2099-12-31", "");
+
+    auto overdue = service.getOverdueTasks();
+    CHECK(overdue.empty());
+}
+
+// =============================================================================
+// View & List Tasks — getSummary
+// =============================================================================
+
+TEST_CASE("getSummary returns correct counts across all statuses", "[list][summary]") {
+    TaskStore store;
+    TaskService service(store);
+
+    // 2 TODO tasks (one overdue)
+    service.createTask("TODO 1", Priority::LOW, "", "", "");
+    service.createTask("TODO overdue", Priority::MEDIUM, "", "2020-01-01", "");
+
+    // 1 IN_PROGRESS task (overdue)
+    auto ip = service.createTask("IP overdue", Priority::HIGH, "", "2020-06-15", "");
+    REQUIRE(ip.has_value());
+    service.startTask(ip->get_id());
+
+    // 1 DONE task (past due date, but NOT overdue because terminal)
+    auto done = service.createTask("Done", Priority::MEDIUM, "", "2020-03-01", "");
+    REQUIRE(done.has_value());
+    service.completeTask(done->get_id());
+
+    // 1 CANCELLED task
+    auto cancelled = service.createTask("Cancelled", Priority::LOW, "", "", "");
+    REQUIRE(cancelled.has_value());
+    service.cancelTask(cancelled->get_id());
+
+    auto summary = service.getSummary();
+    CHECK(summary.total == 5);
+    CHECK(summary.todo == 2);
+    CHECK(summary.in_progress == 1);
+    CHECK(summary.done == 1);
+    CHECK(summary.cancelled == 1);
+    CHECK(summary.overdue == 2);  // TODO overdue + IP overdue; DONE with past date is NOT overdue
+}
+
+TEST_CASE("getSummary returns all-zero struct when store is empty", "[list][summary]") {
+    TaskStore store;
+    TaskService service(store);
+
+    auto summary = service.getSummary();
+    CHECK(summary.total == 0);
+    CHECK(summary.todo == 0);
+    CHECK(summary.in_progress == 0);
+    CHECK(summary.done == 0);
+    CHECK(summary.cancelled == 0);
+    CHECK(summary.overdue == 0);
+}
+
+// =============================================================================
+// View & List Tasks — getTasksSortedByPriority
+// Ported from: TaskServiceTest.getTasksSortedByPriority (Java)
+// =============================================================================
+
+TEST_CASE("getTasksSortedByPriority returns tasks sorted CRITICAL first", "[list][sort]") {
+    TaskStore store;
+    TaskService service(store);
+
+    // Create tasks in mixed priority order
+    service.createTask("Low task",      Priority::LOW,      "", "", "");
+    service.createTask("High task",     Priority::HIGH,     "", "", "");
+    service.createTask("Critical task", Priority::CRITICAL, "", "", "");
+    service.createTask("Medium task",   Priority::MEDIUM,   "", "", "");
+
+    auto sorted = service.getTasksSortedByPriority();
+    REQUIRE(sorted.size() == 4);
+
+    CHECK(sorted[0].get_priority() == Priority::CRITICAL);
+    CHECK(sorted[0].get_title() == "Critical task");
+
+    CHECK(sorted[1].get_priority() == Priority::HIGH);
+    CHECK(sorted[1].get_title() == "High task");
+
+    CHECK(sorted[2].get_priority() == Priority::MEDIUM);
+    CHECK(sorted[2].get_title() == "Medium task");
+
+    CHECK(sorted[3].get_priority() == Priority::LOW);
+    CHECK(sorted[3].get_title() == "Low task");
+}
+
+TEST_CASE("getTasksSortedByPriority returns empty vector when no tasks exist", "[list][sort]") {
+    TaskStore store;
+    TaskService service(store);
+
+    auto sorted = service.getTasksSortedByPriority();
+    CHECK(sorted.empty());
+}
+
+// =============================================================================
+// View & List Tasks — getOverdueTasks
+// Ported from: TaskServiceTest.getOverdueTasks (Java)
+// =============================================================================
+
+TEST_CASE("getOverdueTasks returns only overdue tasks", "[list][overdue]") {
+    TaskStore store;
+    TaskService service(store);
+
+    // Overdue TODO task (past due date, non-terminal status)
+    service.createTask("Overdue TODO", Priority::MEDIUM, "", "2020-01-01", "");
+
+    // Overdue IN_PROGRESS task
+    auto ip = service.createTask("Overdue IP", Priority::HIGH, "", "2020-06-15", "");
+    REQUIRE(ip.has_value());
+    service.startTask(ip->get_id());
+
+    // Not overdue — future due date
+    service.createTask("Future task", Priority::LOW, "", "2099-12-31", "");
+
+    // Not overdue — no due date
+    service.createTask("No date task", Priority::MEDIUM, "", "", "");
+
+    auto overdue = service.getOverdueTasks();
+    REQUIRE(overdue.size() == 2);
+
+    // Both overdue tasks should be present
+    CHECK(overdue[0].get_title() == "Overdue TODO");
+    CHECK(overdue[1].get_title() == "Overdue IP");
+}
+
+TEST_CASE("getOverdueTasks excludes DONE and CANCELLED tasks with past due dates", "[list][overdue]") {
+    TaskStore store;
+    TaskService service(store);
+
+    // Create a task with past due date, then complete it
+    auto done_task = service.createTask("Done task", Priority::MEDIUM, "", "2020-01-01", "");
+    REQUIRE(done_task.has_value());
+    service.completeTask(done_task->get_id());
+
+    // Create a task with past due date, then cancel it
+    auto cancelled_task = service.createTask("Cancelled task", Priority::MEDIUM, "", "2020-01-01", "");
+    REQUIRE(cancelled_task.has_value());
+    service.cancelTask(cancelled_task->get_id());
+
+    auto overdue = service.getOverdueTasks();
+    CHECK(overdue.empty());
+}
+
+TEST_CASE("getOverdueTasks returns empty vector when no tasks are overdue", "[list][overdue]") {
+    TaskStore store;
+    TaskService service(store);
+
+    // Only future-dated and no-date tasks
+    service.createTask("Future", Priority::HIGH, "", "2099-12-31", "");
+    service.createTask("No date", Priority::LOW, "", "", "");
+
+    auto overdue = service.getOverdueTasks();
+    CHECK(overdue.empty());
+}
+
+TEST_CASE("getOverdueTasks returns empty vector when store is empty", "[list][overdue]") {
+    TaskStore store;
+    TaskService service(store);
+
+    auto overdue = service.getOverdueTasks();
+    CHECK(overdue.empty());
+}
+
+// =============================================================================
+// View & List Tasks — getSummary
+// Ported from: TaskServiceTest.getSummary (Java)
+// =============================================================================
+
+TEST_CASE("getSummary returns correct counts across all statuses", "[list][summary]") {
+    TaskStore store;
+    TaskService service(store);
+
+    // 2 TODO tasks (one overdue, one not)
+    service.createTask("TODO 1", Priority::LOW, "", "2020-01-01", "");   // overdue
+    service.createTask("TODO 2", Priority::MEDIUM, "", "2099-12-31", "");
+
+    // 1 IN_PROGRESS task (overdue)
+    auto ip = service.createTask("IP task", Priority::HIGH, "", "2020-06-15", "");
+    REQUIRE(ip.has_value());
+    service.startTask(ip->get_id());
+
+    // 1 DONE task (past due date but NOT overdue since terminal)
+    auto done = service.createTask("Done task", Priority::MEDIUM, "", "2020-03-01", "");
+    REQUIRE(done.has_value());
+    service.completeTask(done->get_id());
+
+    // 1 CANCELLED task
+    auto cancelled = service.createTask("Cancelled task", Priority::LOW, "", "", "");
+    REQUIRE(cancelled.has_value());
+    service.cancelTask(cancelled->get_id());
+
+    auto summary = service.getSummary();
+
+    CHECK(summary.total == 5);
+    CHECK(summary.todo == 2);
+    CHECK(summary.in_progress == 1);
+    CHECK(summary.done == 1);
+    CHECK(summary.cancelled == 1);
+    CHECK(summary.overdue == 2);  // TODO 1 + IP task
+}
+
+TEST_CASE("getSummary returns all-zero struct when store is empty", "[list][summary]") {
+    TaskStore store;
+    TaskService service(store);
+
+    auto summary = service.getSummary();
+
+    CHECK(summary.total == 0);
+    CHECK(summary.todo == 0);
+    CHECK(summary.in_progress == 0);
+    CHECK(summary.done == 0);
+    CHECK(summary.cancelled == 0);
+    CHECK(summary.overdue == 0);
+}
