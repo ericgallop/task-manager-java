@@ -517,3 +517,147 @@ TEST_CASE("E2E: CLI Delete Task with non-existent ID shows not found", "[e2e][de
     // Confirmation prompt should NOT appear for non-existent task
     CHECK(output.find("Are you sure") == std::string::npos);
 }
+
+// =============================================================================
+// E2E: List Tasks — empty state (AC #2)
+// =============================================================================
+
+TEST_CASE("E2E: CLI List Tasks with no tasks shows empty message", "[e2e][list]") {
+    std::string input =
+        "2\n"                     // List all tasks (none exist)
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("No tasks.") != std::string::npos);
+}
+
+// =============================================================================
+// E2E: List Tasks — sorted by priority (AC #1)
+// =============================================================================
+
+TEST_CASE("E2E: CLI List Tasks shows tasks sorted by priority CRITICAL first", "[e2e][list]") {
+    // Create tasks with different priorities in non-sorted order, then list
+    std::string input =
+        "1\n"                     // Add task 1 (LOW)
+        "Low task\n"
+        "LOW\n"
+        "\n\n\n"                  // No desc, due date, assignee
+        "1\n"                     // Add task 2 (CRITICAL)
+        "Critical task\n"
+        "CRITICAL\n"
+        "\n\n\n"
+        "1\n"                     // Add task 3 (MEDIUM)
+        "Medium task\n"
+        "MEDIUM\n"
+        "\n\n\n"
+        "1\n"                     // Add task 4 (HIGH)
+        "High task\n"
+        "HIGH\n"
+        "\n\n\n"
+        "2\n"                     // List all tasks
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    // Find the positions of each task in the output after the last "Choose:" prompt
+    // The list should be sorted: CRITICAL, HIGH, MEDIUM, LOW
+    auto pos_critical = output.rfind("[CRITICAL]");
+    auto pos_high     = output.rfind("[HIGH]");
+    auto pos_medium   = output.rfind("[MEDIUM]");
+    auto pos_low      = output.rfind("[LOW]");
+
+    REQUIRE(pos_critical != std::string::npos);
+    REQUIRE(pos_high != std::string::npos);
+    REQUIRE(pos_medium != std::string::npos);
+    REQUIRE(pos_low != std::string::npos);
+
+    // CRITICAL should appear before HIGH, which appears before MEDIUM, etc.
+    CHECK(pos_critical < pos_high);
+    CHECK(pos_high < pos_medium);
+    CHECK(pos_medium < pos_low);
+}
+
+// =============================================================================
+// E2E: Summary — option 9 (AC #1 summary counts)
+// =============================================================================
+
+TEST_CASE("E2E: CLI Summary shows correct counts", "[e2e][list][summary]") {
+    // Create tasks in various states: 1 TODO, 1 IN_PROGRESS, 1 DONE, 1 CANCELLED
+    std::string input =
+        "1\n"                     // Add task 1 (stays TODO)
+        "TODO task\n"
+        "\n\n\n\n"
+        "1\n"                     // Add task 2 (will be started)
+        "IP task\n"
+        "\n\n\n\n"
+        "3\n"                     // Start task 2
+        "2\n"
+        "1\n"                     // Add task 3 (will be completed)
+        "Done task\n"
+        "\n\n\n\n"
+        "4\n"                     // Complete task 3
+        "3\n"
+        "1\n"                     // Add task 4 (will be cancelled)
+        "Cancelled task\n"
+        "\n\n\n\n"
+        "5\n"                     // Cancel task 4
+        "4\n"
+        "9\n"                     // Show summary
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Total: 4") != std::string::npos);
+    CHECK(output.find("TODO: 1") != std::string::npos);
+    CHECK(output.find("In Progress: 1") != std::string::npos);
+    CHECK(output.find("Done: 1") != std::string::npos);
+    CHECK(output.find("Cancelled: 1") != std::string::npos);
+    CHECK(output.find("Overdue: 0") != std::string::npos);
+}
+
+// =============================================================================
+// E2E: Show Overdue — option 10 with overdue task
+// =============================================================================
+
+TEST_CASE("E2E: CLI Show Overdue displays overdue tasks", "[e2e][list][overdue]") {
+    // Create a task with a past due date (2020-01-01) — will be overdue
+    std::string input =
+        "1\n"                     // Add task
+        "Overdue task\n"
+        "HIGH\n"
+        "\n"                      // No description
+        "2020-01-01\n"           // Past due date
+        "\n"                      // No assignee
+        "10\n"                    // Show overdue
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    // The overdue task should appear in the output of option 10
+    CHECK(output.find("Overdue task") != std::string::npos);
+    CHECK(output.find("(due: 2020-01-01)") != std::string::npos);
+    // "No overdue tasks." should NOT appear
+    CHECK(output.find("No overdue tasks.") == std::string::npos);
+}
+
+// =============================================================================
+// E2E: Show Overdue — option 10 with no overdue tasks
+// =============================================================================
+
+TEST_CASE("E2E: CLI Show Overdue with no overdue tasks shows empty message", "[e2e][list][overdue]") {
+    // Create a task with a future due date — not overdue
+    std::string input =
+        "1\n"                     // Add task
+        "Future task\n"
+        "\n"                      // Default priority
+        "\n"                      // No description
+        "2099-12-31\n"           // Future due date
+        "\n"                      // No assignee
+        "10\n"                    // Show overdue
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("No overdue tasks.") != std::string::npos);
+}
