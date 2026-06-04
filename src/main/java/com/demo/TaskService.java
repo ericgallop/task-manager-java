@@ -88,9 +88,22 @@ public class TaskService {
     }
 
     public List<Task> getTasksSortedByDueDate() {
+        Comparator<Task> dueDateComparator = (left, right) -> {
+            boolean leftHas = left.getDueDate() != null;
+            boolean rightHas = right.getDueDate() != null;
+            if (leftHas && rightHas) {
+                return left.getDueDate().compareTo(right.getDueDate());
+            }
+            if (leftHas) {
+                return -1;
+            }
+            if (rightHas) {
+                return 1;
+            }
+            return Integer.compare(left.getId(), right.getId());
+        };
         return repository.findAll().stream()
-                .filter(t -> t.getDueDate() != null)
-                .sorted(Comparator.comparing(Task::getDueDate))
+                .sorted(dueDateComparator)
                 .collect(Collectors.toList());
     }
 
