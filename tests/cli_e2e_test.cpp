@@ -405,3 +405,115 @@ TEST_CASE("E2E: CLI Set Priority with missing ID shows not found", "[e2e][update
 
     CHECK(output.find("Task not found.") != std::string::npos);
 }
+
+// =============================================================================
+// E2E: Delete Task — confirm with lowercase 'y' (happy path)
+// =============================================================================
+
+TEST_CASE("E2E: CLI Delete Task confirmed with y removes task", "[e2e][delete]") {
+    // 1. Add a task, 2. Delete it with confirmation, 3. List to verify gone, 4. Exit
+    std::string input =
+        "1\n"                     // Add task
+        "Delete me\n"            // Title
+        "\n\n\n\n"               // Default optional fields
+        "8\n"                     // Remove task
+        "1\n"                     // Task ID
+        "y\n"                     // Confirm deletion
+        "2\n"                     // List all tasks
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Are you sure you want to delete task #1? (y/n):") != std::string::npos);
+    CHECK(output.find("Task 1 removed.") != std::string::npos);
+    // After deletion, listing should show no tasks
+    CHECK(output.find("No tasks.") != std::string::npos);
+}
+
+// =============================================================================
+// E2E: Delete Task — confirm with uppercase 'Y'
+// =============================================================================
+
+TEST_CASE("E2E: CLI Delete Task confirmed with Y removes task", "[e2e][delete]") {
+    // 1. Add a task, 2. Delete it with uppercase Y, 3. Exit
+    std::string input =
+        "1\n"                     // Add task
+        "Delete uppercase\n"     // Title
+        "\n\n\n\n"               // Default optional fields
+        "8\n"                     // Remove task
+        "1\n"                     // Task ID
+        "Y\n"                     // Confirm deletion (uppercase)
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Are you sure you want to delete task #1? (y/n):") != std::string::npos);
+    CHECK(output.find("Task 1 removed.") != std::string::npos);
+}
+
+// =============================================================================
+// E2E: Delete Task — cancel with 'n' preserves task
+// =============================================================================
+
+TEST_CASE("E2E: CLI Delete Task cancelled with n preserves task", "[e2e][delete]") {
+    // 1. Add a task, 2. Attempt delete but cancel, 3. List to verify still there, 4. Exit
+    std::string input =
+        "1\n"                     // Add task
+        "Keep me\n"              // Title
+        "\n\n\n\n"               // Default optional fields
+        "8\n"                     // Remove task
+        "1\n"                     // Task ID
+        "n\n"                     // Reject deletion
+        "2\n"                     // List all tasks
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Are you sure you want to delete task #1? (y/n):") != std::string::npos);
+    CHECK(output.find("Delete cancelled.") != std::string::npos);
+    // Task should still appear in list
+    CHECK(output.find("Keep me") != std::string::npos);
+    // "No tasks." should NOT appear
+    CHECK(output.find("No tasks.") == std::string::npos);
+}
+
+// =============================================================================
+// E2E: Delete Task — cancel with random input
+// =============================================================================
+
+TEST_CASE("E2E: CLI Delete Task cancelled with random input preserves task", "[e2e][delete]") {
+    // 1. Add a task, 2. Attempt delete with random input, 3. Exit
+    std::string input =
+        "1\n"                     // Add task
+        "Random cancel\n"        // Title
+        "\n\n\n\n"               // Default optional fields
+        "8\n"                     // Remove task
+        "1\n"                     // Task ID
+        "maybe\n"                // Random input → rejection
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Are you sure you want to delete task #1? (y/n):") != std::string::npos);
+    CHECK(output.find("Delete cancelled.") != std::string::npos);
+    // Task should NOT have been removed
+    CHECK(output.find("Task 1 removed.") == std::string::npos);
+}
+
+// =============================================================================
+// E2E: Delete Task — non-existent ID shows not found, no confirmation prompt
+// =============================================================================
+
+TEST_CASE("E2E: CLI Delete Task with non-existent ID shows not found", "[e2e][delete]") {
+    // No tasks created — attempt to delete ID 999
+    std::string input =
+        "8\n"                     // Remove task (no tasks exist)
+        "999\n"                   // Non-existent ID
+        "0\n";                    // Exit
+
+    std::string output = run_cli(input);
+
+    CHECK(output.find("Task not found.") != std::string::npos);
+    // Confirmation prompt should NOT appear for non-existent task
+    CHECK(output.find("Are you sure") == std::string::npos);
+}
