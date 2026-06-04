@@ -423,14 +423,8 @@ public class TaskManagerUI extends JFrame {
         String sort = (String) sortBox.getSelectedItem();
         if ("Due date".equals(sort)) {
             tasks = service.getTasksSortedByDueDate();
-            List<Integer> sortedIds = tasks.stream().map(Task::getId).collect(Collectors.toList());
-            tasks = service.getAllTasks().stream()
-                    .sorted((left, right) -> compareDueDateFirst(left, right, sortedIds))
-                    .collect(Collectors.toList());
         } else if ("Created".equals(sort)) {
-            tasks = service.getAllTasks().stream()
-                    .sorted((left, right) -> Integer.compare(left.getId(), right.getId()))
-                    .collect(Collectors.toList());
+            tasks = service.getTasksSortedByCreationOrder();
         } else {
             tasks = service.getTasksSortedByPriority();
         }
@@ -439,21 +433,6 @@ public class TaskManagerUI extends JFrame {
         return tasks.stream()
                 .filter(task -> matchesFilter(task, filter))
                 .collect(Collectors.toList());
-    }
-
-    private int compareDueDateFirst(Task left, Task right, List<Integer> sortedIds) {
-        boolean leftHasDueDate = left.getDueDate() != null;
-        boolean rightHasDueDate = right.getDueDate() != null;
-        if (leftHasDueDate && rightHasDueDate) {
-            return Integer.compare(sortedIds.indexOf(left.getId()), sortedIds.indexOf(right.getId()));
-        }
-        if (leftHasDueDate) {
-            return -1;
-        }
-        if (rightHasDueDate) {
-            return 1;
-        }
-        return Integer.compare(left.getId(), right.getId());
     }
 
     private boolean matchesFilter(Task task, String filter) {
