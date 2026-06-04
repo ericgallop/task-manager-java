@@ -87,7 +87,30 @@ public class Main {
     }
 
     private static void listTasks() {
-        List<Task> tasks = service.getTasksSortedByPriority();
+        System.out.println("Sort by:");
+        System.out.println("  1. Priority (highest first)");
+        System.out.println("  2. Due date (earliest first)");
+        System.out.println("  3. Creation order");
+        System.out.print("Choose: ");
+
+        String choice = scanner.nextLine().trim();
+        List<Task> tasks;
+        switch (choice) {
+            case "1":
+                tasks = service.getTasksSortedByPriority();
+                break;
+            case "2":
+                tasks = service.getTasksSortedByDueDate();
+                break;
+            case "3":
+                tasks = service.getTasksSortedByCreationOrder();
+                break;
+            default:
+                System.out.println("Invalid choice, sorting by priority.");
+                tasks = service.getTasksSortedByPriority();
+                break;
+        }
+
         if (tasks.isEmpty()) { System.out.println("No tasks."); return; }
         tasks.forEach(System.out::println);
     }
