@@ -1,7 +1,9 @@
 com/demo/TaskTest.class
+com/demo/FilterScreenshotTest.class
+com/demo/CliE2ETest.class
 com/demo/ScreenshotTest.class
+com/demo/CliOverdueE2ETest.class
 com/demo/VisualValidationTest.class
 com/demo/ScreenshotTest$CountDownLatchWrapper.class
-com/demo/CliFilterE2ETest.class
 com/demo/TaskServiceTest.class
 com/demo/TaskManagerTest.class

@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
-Test set: com.demo.CliFilterE2ETest
+Test set: com.demo.CliOverdueE2ETest
 -------------------------------------------------------------------------------
-Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.886 s -- in com.demo.CliFilterE2ETest
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.660 s -- in com.demo.CliOverdueE2ETest

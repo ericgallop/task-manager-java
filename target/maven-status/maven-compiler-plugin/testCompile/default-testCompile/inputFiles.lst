@@ -1,7 +1,8 @@
 /workspace/project/src/test/java/com/demo/ScreenshotTest.java
 /workspace/project/src/test/java/com/demo/VisualValidationTest.java
 /workspace/project/src/test/java/com/demo/FilterScreenshotTest.java
-/workspace/project/src/test/java/com/demo/CliFilterE2ETest.java
 /workspace/project/src/test/java/com/demo/TaskManagerTest.java
+/workspace/project/src/test/java/com/demo/CliOverdueE2ETest.java
 /workspace/project/src/test/java/com/demo/TaskServiceTest.java
+/workspace/project/src/test/java/com/demo/CliE2ETest.java
 /workspace/project/src/test/java/com/demo/TaskTest.java
