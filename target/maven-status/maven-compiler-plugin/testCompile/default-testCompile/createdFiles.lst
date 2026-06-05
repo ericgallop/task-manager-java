@@ -1,5 +1,5 @@
-com/demo/VisualValidationTest.class
 com/demo/ScreenshotTest.class
+com/demo/VisualValidationTest.class
 com/demo/ScreenshotTest$CountDownLatchWrapper.class
 com/demo/CliFilterE2ETest.class
 com/demo/TaskServiceTest.class

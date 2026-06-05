@@ -7,6 +7,7 @@ com/demo/TaskManagerUI$TaskTableModel.class
 com/demo/Main.class
 com/demo/TaskStatus.class
 com/demo/TaskManagerUI$TaskCellRenderer.class
+com/demo/TaskService$1.class
 com/demo/Task.class
 com/demo/TaskManager.class
 com/demo/TaskManagerUI$TaskAction.class

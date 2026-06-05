@@ -154,11 +154,19 @@ public class TaskService {
 
     public TaskSummary getSummary() {
         List<Task> all = repository.findAll();
-        long todo = all.stream().filter(t -> t.getStatus() == TaskStatus.TODO).count();
-        long inProgress = all.stream().filter(t -> t.getStatus() == TaskStatus.IN_PROGRESS).count();
-        long done = all.stream().filter(t -> t.getStatus() == TaskStatus.DONE).count();
-        long cancelled = all.stream().filter(t -> t.getStatus() == TaskStatus.CANCELLED).count();
-        long overdue = all.stream().filter(Task::isOverdue).count();
-        return new TaskSummary(all.size(), todo, inProgress, done, cancelled, overdue);
+        long total = 0, todo = 0, inProgress = 0, done = 0, cancelled = 0, overdue = 0;
+        for (Task task : all) {
+            total++;
+            switch (task.getStatus()) {
+                case TODO:        todo++;        break;
+                case IN_PROGRESS: inProgress++;  break;
+                case DONE:        done++;        break;
+                case CANCELLED:   cancelled++;   break;
+            }
+            if (task.isOverdue()) {
+                overdue++;
+            }
+        }
+        return new TaskSummary(total, todo, inProgress, done, cancelled, overdue);
     }
 }
