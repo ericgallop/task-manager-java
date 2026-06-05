@@ -76,7 +76,7 @@ public class CliE2ETest {
     // ---- Menu display ----
 
     @Test
-    void menu_showsAllOptions() throws Exception {
+    void menu_showsAllTenOptions() throws Exception {
         String input = "0\n";
         String output = runCli(input);
 
@@ -90,8 +90,8 @@ public class CliE2ETest {
         assertTrue(output.contains("8. Remove task"), "Menu should show option 8");
         assertTrue(output.contains("9. Summary"), "Menu should show option 9");
         assertTrue(output.contains("10. Show overdue"), "Menu should show option 10");
-        assertTrue(output.contains("11. Filter tasks by status"), "Menu should show option 11");
         assertTrue(output.contains("0. Exit"), "Menu should show option 0");
+        assertFalse(output.contains("11."), "Menu should NOT have option 11");
         assertTrue(output.contains("Choose:"), "Menu should show Choose: prompt");
     }
 
@@ -358,9 +358,8 @@ public class CliE2ETest {
 
     @Test
     void fullWorkflow_addStartCompleteListSummary() throws Exception {
-        // Add task -> start -> complete -> list (sort by priority) -> summary -> exit
-        // Option 2 (list) has a sort sub-menu; "1" selects "Priority (highest first)"
-        String input = "1\nWorkflow task\nHIGH\nTest desc\n\n3\n1\n4\n1\n2\n1\n9\n0\n";
+        // Add task -> start -> complete -> list -> summary -> exit
+        String input = "1\nWorkflow task\nHIGH\nTest desc\n\n3\n1\n4\n1\n2\n9\n0\n";
         String output = runCli(input);
 
         assertTrue(output.contains("Created:"), "Task should be created");
@@ -370,19 +369,16 @@ public class CliE2ETest {
         assertTrue(output.contains("Goodbye!"), "Should exit with Goodbye!");
     }
 
-    // ---- Option 11: Filter tasks by status ----
+    // ---- Removed feature: option 11 should now be invalid ----
 
     @Test
-    void option11_showsFilterSubMenu() throws Exception {
-        // Select filter (option 11), choose an invalid sub-option to trigger message, then exit
-        String input = "11\n9\n0\n";
+    void option11_isNowInvalid() throws Exception {
+        String input = "11\n0\n";
         String output = runCli(input);
 
-        assertTrue(output.contains("Filter by:"),
-                "Option 11 should show the filter sub-menu");
-        assertTrue(output.contains("Choose filter:"),
-                "Filter sub-menu should show 'Choose filter:' prompt");
-        assertTrue(output.contains("Invalid filter option."),
-                "Invalid sub-option should show 'Invalid filter option.'");
+        assertTrue(output.contains("Invalid option."),
+                "Option 11 (removed filter) should now show 'Invalid option.'");
+        assertFalse(output.contains("Filter by:"),
+                "Filter sub-menu should not appear");
     }
 }
