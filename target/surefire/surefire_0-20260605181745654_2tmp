@@ -1,6 +1,0 @@
-#surefire_0
-#Fri Jun 05 18:17:45 UTC 2026
-basedir=/workspace/project
-test=com.demo.CliFilterE2ETest
-surefire.useFile=false
-localRepository=/root/.m2/repository

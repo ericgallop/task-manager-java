@@ -64,7 +64,8 @@ public class Task {
     public String toString() {
         String duePart = dueDate != null ? " (due: " + dueDate.format(DATE_FMT) + ")" : "";
         String assigneePart = assignee != null ? " [@" + assignee + "]" : "";
-        return String.format("[%s] #%d %-8s %s%s%s",
-                status, id, "[" + priority + "]", title, duePart, assigneePart);
+        String overduePart = isOverdue() ? " ⚠ OVERDUE" : "";
+        return String.format("[%s] #%d %-8s %s%s%s%s",
+                status, id, "[" + priority + "]", title, duePart, assigneePart, overduePart);
     }
 }
