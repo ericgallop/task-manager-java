@@ -76,7 +76,7 @@ public class CliE2ETest {
     // ---- Menu display ----
 
     @Test
-    void menu_showsAllTenOptions() throws Exception {
+    void menu_showsAllOptions() throws Exception {
         String input = "0\n";
         String output = runCli(input);
 
@@ -90,8 +90,8 @@ public class CliE2ETest {
         assertTrue(output.contains("8. Remove task"), "Menu should show option 8");
         assertTrue(output.contains("9. Summary"), "Menu should show option 9");
         assertTrue(output.contains("10. Show overdue"), "Menu should show option 10");
+        assertTrue(output.contains("11. Filter tasks by status"), "Menu should show option 11");
         assertTrue(output.contains("0. Exit"), "Menu should show option 0");
-        assertFalse(output.contains("11."), "Menu should NOT have option 11");
         assertTrue(output.contains("Choose:"), "Menu should show Choose: prompt");
     }
 
