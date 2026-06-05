@@ -225,6 +225,83 @@ public class TaskServiceTest {
     }
 
     @Test
+    void getSummary_reflectsTaskAddition() {
+        // AC #4: summary reflects current state after adding tasks
+        TaskSummary before = service.getSummary();
+        assertEquals(0, before.total);
+
+        service.createTask("First");
+        TaskSummary afterOne = service.getSummary();
+        assertEquals(1, afterOne.total);
+        assertEquals(1, afterOne.todo);
+
+        service.createTask("Second");
+        TaskSummary afterTwo = service.getSummary();
+        assertEquals(2, afterTwo.total);
+        assertEquals(2, afterTwo.todo);
+    }
+
+    @Test
+    void getSummary_reflectsTaskCompletion() {
+        // AC #4: completing a task moves it from todo to done in real time
+        Task task = service.createTask("Task");
+        TaskSummary before = service.getSummary();
+        assertEquals(1, before.todo);
+        assertEquals(0, before.done);
+
+        service.completeTask(task.getId());
+        TaskSummary after = service.getSummary();
+        assertEquals(1, after.total);
+        assertEquals(0, after.todo);
+        assertEquals(1, after.done);
+    }
+
+    @Test
+    void getSummary_reflectsTaskDeletion() {
+        // AC #4: deleting a task decreases total in real time
+        Task t1 = service.createTask("Keep");
+        Task t2 = service.createTask("Delete");
+
+        TaskSummary before = service.getSummary();
+        assertEquals(2, before.total);
+        assertEquals(2, before.todo);
+
+        service.deleteTask(t2.getId());
+        TaskSummary after = service.getSummary();
+        assertEquals(1, after.total);
+        assertEquals(1, after.todo);
+    }
+
+    @Test
+    void getSummary_reflectsStatusTransitions() {
+        // AC #4: summary tracks a task through TODO → IN_PROGRESS → DONE
+        Task task = service.createTask("Lifecycle");
+
+        // Step 1: starts as TODO
+        TaskSummary step1 = service.getSummary();
+        assertEquals(1, step1.total);
+        assertEquals(1, step1.todo);
+        assertEquals(0, step1.inProgress);
+        assertEquals(0, step1.done);
+
+        // Step 2: transition to IN_PROGRESS
+        service.startTask(task.getId());
+        TaskSummary step2 = service.getSummary();
+        assertEquals(1, step2.total);
+        assertEquals(0, step2.todo);
+        assertEquals(1, step2.inProgress);
+        assertEquals(0, step2.done);
+
+        // Step 3: transition to DONE
+        service.completeTask(task.getId());
+        TaskSummary step3 = service.getSummary();
+        assertEquals(1, step3.total);
+        assertEquals(0, step3.todo);
+        assertEquals(0, step3.inProgress);
+        assertEquals(1, step3.done);
+    }
+
+    @Test
     void deleteTask_removesTask() {
         Task task = service.createTask("Delete me");
         assertTrue(service.deleteTask(task.getId()));
