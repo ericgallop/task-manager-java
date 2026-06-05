@@ -110,6 +110,64 @@ public class TaskServiceTest {
     }
 
     @Test
+    void getSummary_countsAllStatuses() {
+        // Create one task in each status plus an overdue task
+        Task todo = service.createTask("TodoTask");
+        Task inProgress = service.createTask("InProgressTask");
+        service.startTask(inProgress.getId());
+        Task done = service.createTask("DoneTask");
+        service.completeTask(done.getId());
+        Task cancelled = service.createTask("CancelledTask");
+        service.cancelTask(cancelled.getId());
+        // Overdue: TODO with past due date
+        Task overdue = service.createTask("OverdueTask", Priority.MEDIUM, null, LocalDate.now().minusDays(3));
+
+        TaskSummary summary = service.getSummary();
+        assertEquals(5, summary.total);
+        assertEquals(2, summary.todo);        // todo + overdue (overdue is still in TODO status)
+        assertEquals(1, summary.inProgress);
+        assertEquals(1, summary.done);
+        assertEquals(1, summary.cancelled);
+        assertEquals(1, summary.overdue);
+    }
+
+    @Test
+    void getSummary_countsOverdueForTodoWithPastDueDate() {
+        // A TODO task with yesterday's due date should be counted as overdue
+        service.createTask("OverdueTodo", Priority.MEDIUM, null, LocalDate.now().minusDays(1));
+
+        TaskSummary summary = service.getSummary();
+        assertEquals(1, summary.total);
+        assertEquals(1, summary.todo);
+        assertEquals(1, summary.overdue);
+    }
+
+    @Test
+    void getSummary_countsOverdueForInProgressWithPastDueDate() {
+        // An IN_PROGRESS task with a past due date should be counted as overdue
+        Task task = service.createTask("OverdueInProgress", Priority.HIGH, null, LocalDate.now().minusDays(2));
+        service.startTask(task.getId());
+
+        TaskSummary summary = service.getSummary();
+        assertEquals(1, summary.total);
+        assertEquals(0, summary.todo);
+        assertEquals(1, summary.inProgress);
+        assertEquals(1, summary.overdue);
+    }
+
+    @Test
+    void getSummary_emptyRepository_returnsAllZeros() {
+        // No tasks created — all counts should be zero
+        TaskSummary summary = service.getSummary();
+        assertEquals(0, summary.total);
+        assertEquals(0, summary.todo);
+        assertEquals(0, summary.inProgress);
+        assertEquals(0, summary.done);
+        assertEquals(0, summary.cancelled);
+        assertEquals(0, summary.overdue);
+    }
+
+    @Test
     void deleteTask_removesTask() {
         Task task = service.createTask("Delete me");
         assertTrue(service.deleteTask(task.getId()));

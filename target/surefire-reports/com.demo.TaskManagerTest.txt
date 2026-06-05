@@ -1,4 +1,11 @@
 -------------------------------------------------------------------------------
 Test set: com.demo.TaskManagerTest
 -------------------------------------------------------------------------------
-Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.101 s -- in com.demo.TaskManagerTest
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.099 s -- in com.demo.TaskManagerTest
+com.demo.TaskManagerTest.getPendingTasks_excludesCompleted -- Time elapsed: 0.039 s
+com.demo.TaskManagerTest.addTask_createsTaskWithTitle -- Time elapsed: 0.010 s
+com.demo.TaskManagerTest.completeTask_returnsFalseForMissingId -- Time elapsed: 0.001 s
+com.demo.TaskManagerTest.completeTask_marksTaskDone -- Time elapsed: 0.002 s
+com.demo.TaskManagerTest.removeTask_deletesTask -- Time elapsed: 0.015 s
+com.demo.TaskManagerTest.removeTask_returnsFalseForMissingId -- Time elapsed: 0.002 s
+com.demo.TaskManagerTest.addTask_assignsIncrementingIds -- Time elapsed: 0.008 s
