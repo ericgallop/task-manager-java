@@ -32,7 +32,6 @@ public class Main {
                 case "8":  removeTask();       break;
                 case "9":  showSummary();      break;
                 case "10": showOverdue();      break;
-                case "11": filterTasks();      break;
                 case "0":  running = false;    break;
                 default:   System.out.println("Invalid option.");
             }
@@ -53,7 +52,6 @@ public class Main {
         System.out.println(" 8. Remove task");
         System.out.println(" 9. Summary");
         System.out.println("10. Show overdue");
-        System.out.println("11. Filter tasks by status");
         System.out.println(" 0. Exit");
         System.out.print("Choose: ");
     }
@@ -82,30 +80,7 @@ public class Main {
     }
 
     private static void listTasks() {
-        System.out.println("Sort by:");
-        System.out.println("  1. Priority (highest first)");
-        System.out.println("  2. Due date (earliest first)");
-        System.out.println("  3. Creation order");
-        System.out.print("Choose: ");
-
-        String choice = scanner.nextLine().trim();
-        List<Task> tasks;
-        switch (choice) {
-            case "1":
-                tasks = service.getTasksSortedByPriority();
-                break;
-            case "2":
-                tasks = service.getTasksSortedByDueDate();
-                break;
-            case "3":
-                tasks = service.getTasksSortedByCreationOrder();
-                break;
-            default:
-                System.out.println("Invalid choice, sorting by priority.");
-                tasks = service.getTasksSortedByPriority();
-                break;
-        }
-
+        List<Task> tasks = service.getTasksSortedByPriority();
         if (tasks.isEmpty()) { System.out.println("No tasks."); return; }
         tasks.forEach(System.out::println);
     }
@@ -164,38 +139,6 @@ public class Main {
         List<Task> overdue = service.getOverdueTasks();
         if (overdue.isEmpty()) System.out.println("No overdue tasks.");
         else overdue.forEach(System.out::println);
-    }
-
-    private static void filterTasks() {
-        System.out.println("Filter by:");
-        System.out.println("  1. All tasks");
-        System.out.println("  2. Todo");
-        System.out.println("  3. In progress");
-        System.out.println("  4. Done");
-        System.out.println("  5. Cancelled");
-        System.out.println("  6. Overdue");
-        System.out.print("Choose filter: ");
-
-        String choice = scanner.nextLine().trim();
-        String filter;
-        switch (choice) {
-            case "1": filter = "all";         break;
-            case "2": filter = "todo";        break;
-            case "3": filter = "in_progress"; break;
-            case "4": filter = "done";        break;
-            case "5": filter = "cancelled";   break;
-            case "6": filter = "overdue";     break;
-            default:
-                System.out.println("Invalid filter option.");
-                return;
-        }
-
-        List<Task> tasks = service.getFilteredTasks(filter);
-        if (tasks.isEmpty()) {
-            System.out.println("No tasks match the selected filter.");
-        } else {
-            tasks.forEach(System.out::println);
-        }
     }
 
     private static int readId(String prompt) {
