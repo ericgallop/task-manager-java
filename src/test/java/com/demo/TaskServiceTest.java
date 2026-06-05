@@ -168,6 +168,63 @@ public class TaskServiceTest {
     }
 
     @Test
+    void getSummary_doneTaskWithPastDueDate_notCountedAsOverdue() {
+        // AC #3: DONE task with a past due date should NOT be counted as overdue
+        Task task = service.createTask("DoneOverdue", Priority.HIGH, null, LocalDate.now().minusDays(5));
+        service.completeTask(task.getId());
+
+        TaskSummary summary = service.getSummary();
+        assertEquals(1, summary.total);
+        assertEquals(1, summary.done);
+        assertEquals(0, summary.overdue);
+    }
+
+    @Test
+    void getSummary_cancelledTaskWithPastDueDate_notCountedAsOverdue() {
+        // AC #3: CANCELLED task with a past due date should NOT be counted as overdue
+        Task task = service.createTask("CancelledOverdue", Priority.MEDIUM, null, LocalDate.now().minusDays(3));
+        service.cancelTask(task.getId());
+
+        TaskSummary summary = service.getSummary();
+        assertEquals(1, summary.total);
+        assertEquals(1, summary.cancelled);
+        assertEquals(0, summary.overdue);
+    }
+
+    @Test
+    void getSummary_taskDueToday_notCountedAsOverdue() {
+        // Edge case: task due today is NOT overdue (strict < semantics — Java's isAfter() is strict)
+        service.createTask("DueToday", Priority.MEDIUM, null, LocalDate.now());
+
+        TaskSummary summary = service.getSummary();
+        assertEquals(1, summary.total);
+        assertEquals(1, summary.todo);
+        assertEquals(0, summary.overdue);
+    }
+
+    @Test
+    void getSummary_taskWithNoDueDate_notCountedAsOverdue() {
+        // Edge case: a task with no due date is never overdue
+        service.createTask("NoDueDate");
+
+        TaskSummary summary = service.getSummary();
+        assertEquals(1, summary.total);
+        assertEquals(1, summary.todo);
+        assertEquals(0, summary.overdue);
+    }
+
+    @Test
+    void getSummary_taskWithFutureDueDate_notCountedAsOverdue() {
+        // Edge case: a task with a future due date is not overdue
+        service.createTask("FutureDue", Priority.LOW, null, LocalDate.now().plusDays(7));
+
+        TaskSummary summary = service.getSummary();
+        assertEquals(1, summary.total);
+        assertEquals(1, summary.todo);
+        assertEquals(0, summary.overdue);
+    }
+
+    @Test
     void deleteTask_removesTask() {
         Task task = service.createTask("Delete me");
         assertTrue(service.deleteTask(task.getId()));
