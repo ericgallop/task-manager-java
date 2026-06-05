@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -81,6 +82,144 @@ public class TaskServiceTest {
         List<Task> overdueList = service.getOverdueTasks();
         assertEquals(1, overdueList.size());
         assertEquals(overdue.getId(), overdueList.get(0).getId());
+    }
+
+    // --- getOverdueTasks: comprehensive coverage ---
+
+    @Test
+    void getOverdueTasks_inProgressWithPastDueDate_isIncluded() {
+        // AC1: An IN_PROGRESS task with a past due date should appear in overdue list
+        Task task = service.createTask("InProgressOverdue", Priority.HIGH, null, LocalDate.now().minusDays(3));
+        service.startTask(task.getId());
+
+        List<Task> overdueList = service.getOverdueTasks();
+        assertEquals(1, overdueList.size());
+        assertEquals(task.getId(), overdueList.get(0).getId());
+        assertEquals(TaskStatus.IN_PROGRESS, overdueList.get(0).getStatus());
+    }
+
+    @Test
+    void getOverdueTasks_doneWithPastDueDate_isExcluded() {
+        // AC2: A DONE task with a past due date should NOT appear in overdue list
+        Task task = service.createTask("DoneOverdue", Priority.HIGH, null, LocalDate.now().minusDays(5));
+        service.completeTask(task.getId());
+
+        List<Task> overdueList = service.getOverdueTasks();
+        assertTrue(overdueList.isEmpty(),
+                "A DONE task should not appear in the overdue list even with a past due date");
+    }
+
+    @Test
+    void getOverdueTasks_cancelledWithPastDueDate_isExcluded() {
+        // AC2: A CANCELLED task with a past due date should NOT appear in overdue list
+        Task task = service.createTask("CancelledOverdue", Priority.MEDIUM, null, LocalDate.now().minusDays(7));
+        service.cancelTask(task.getId());
+
+        List<Task> overdueList = service.getOverdueTasks();
+        assertTrue(overdueList.isEmpty(),
+                "A CANCELLED task should not appear in the overdue list even with a past due date");
+    }
+
+    @Test
+    void getOverdueTasks_noDueDate_isExcluded() {
+        // AC3: A task with no due date should never appear in overdue list
+        service.createTask("NoDueDate");
+
+        List<Task> overdueList = service.getOverdueTasks();
+        assertTrue(overdueList.isEmpty(),
+                "A task with no due date should never appear in the overdue list");
+    }
+
+    @Test
+    void getOverdueTasks_dueToday_isExcluded() {
+        // Edge: A task due today is NOT overdue (strict 'after' semantics)
+        service.createTask("DueToday", Priority.MEDIUM, null, LocalDate.now());
+
+        List<Task> overdueList = service.getOverdueTasks();
+        assertTrue(overdueList.isEmpty(),
+                "A task due today should not appear in the overdue list");
+    }
+
+    @Test
+    void getOverdueTasks_futureDueDate_isExcluded() {
+        // Edge: A task with a future due date is NOT overdue
+        service.createTask("FutureTask", Priority.LOW, null, LocalDate.now().plusDays(30));
+
+        List<Task> overdueList = service.getOverdueTasks();
+        assertTrue(overdueList.isEmpty(),
+                "A task with a future due date should not appear in the overdue list");
+    }
+
+    @Test
+    void getOverdueTasks_emptyRepository_returnsEmptyList() {
+        // No tasks at all — getOverdueTasks should return empty list
+        List<Task> overdueList = service.getOverdueTasks();
+        assertNotNull(overdueList, "getOverdueTasks should return a non-null list");
+        assertTrue(overdueList.isEmpty(),
+                "getOverdueTasks on empty repository should return empty list");
+    }
+
+    @Test
+    void getOverdueTasks_combinationAllStatusesAndDueDates_returnsOnlyNonTerminalPastDue() {
+        // Comprehensive combination test: create tasks in all statuses with various due dates
+        // Only non-terminal tasks (TODO, IN_PROGRESS) with past due dates should be returned
+
+        // Overdue: TODO with past due date — SHOULD appear
+        Task todoOverdue = service.createTask("TodoOverdue", Priority.HIGH, null, LocalDate.now().minusDays(2));
+
+        // Overdue: IN_PROGRESS with past due date — SHOULD appear
+        Task inProgressOverdue = service.createTask("InProgressOverdue", Priority.CRITICAL, null, LocalDate.now().minusDays(10));
+        service.startTask(inProgressOverdue.getId());
+
+        // NOT overdue: DONE with past due date — should NOT appear
+        Task doneOverdue = service.createTask("DonePastDue", Priority.HIGH, null, LocalDate.now().minusDays(5));
+        service.completeTask(doneOverdue.getId());
+
+        // NOT overdue: CANCELLED with past due date — should NOT appear
+        Task cancelledOverdue = service.createTask("CancelledPastDue", Priority.MEDIUM, null, LocalDate.now().minusDays(3));
+        service.cancelTask(cancelledOverdue.getId());
+
+        // NOT overdue: TODO with today's due date
+        service.createTask("TodoToday", Priority.MEDIUM, null, LocalDate.now());
+
+        // NOT overdue: TODO with future due date
+        service.createTask("TodoFuture", Priority.LOW, null, LocalDate.now().plusDays(14));
+
+        // NOT overdue: IN_PROGRESS with future due date
+        Task inProgressFuture = service.createTask("InProgressFuture", Priority.MEDIUM, null, LocalDate.now().plusDays(7));
+        service.startTask(inProgressFuture.getId());
+
+        // NOT overdue: TODO with no due date
+        service.createTask("TodoNoDue");
+
+        // NOT overdue: DONE with no due date
+        Task doneNoDue = service.createTask("DoneNoDue");
+        service.completeTask(doneNoDue.getId());
+
+        // NOT overdue: CANCELLED with no due date
+        Task cancelledNoDue = service.createTask("CancelledNoDue");
+        service.cancelTask(cancelledNoDue.getId());
+
+        // Execute
+        List<Task> overdueList = service.getOverdueTasks();
+
+        // Verify: exactly 2 overdue tasks (todoOverdue and inProgressOverdue)
+        assertEquals(2, overdueList.size(),
+                "Only non-terminal tasks with past due dates should be in the overdue list");
+
+        List<Integer> overdueIds = overdueList.stream()
+                .map(Task::getId)
+                .collect(Collectors.toList());
+        assertTrue(overdueIds.contains(todoOverdue.getId()),
+                "TODO task with past due date should be in overdue list");
+        assertTrue(overdueIds.contains(inProgressOverdue.getId()),
+                "IN_PROGRESS task with past due date should be in overdue list");
+
+        // Verify none of the excluded tasks are present
+        assertFalse(overdueIds.contains(doneOverdue.getId()),
+                "DONE task should not be in overdue list");
+        assertFalse(overdueIds.contains(cancelledOverdue.getId()),
+                "CANCELLED task should not be in overdue list");
     }
 
     @Test
