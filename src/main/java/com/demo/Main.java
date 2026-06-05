@@ -9,11 +9,6 @@ public class Main {
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
-        if (args.length == 0 || !"--cli".equals(args[0])) {
-            TaskManagerUI.launch(service);
-            return;
-        }
-
         runCli();
     }
 
