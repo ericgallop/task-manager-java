@@ -1,0 +1,15 @@
+# Build output
+build/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Compiled objects
+*.o
+*.a
+*.so
+*.dylib
