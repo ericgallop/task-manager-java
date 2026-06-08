@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.demo.CliE2ETest" time="4.08" tests="28" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.demo.CliE2ETest" time="3.661" tests="28" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="17"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -12,7 +12,7 @@
     <property name="java.vm.specification.version" value="17"/>
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="sun.boot.library.path" value="/usr/lib/jvm/java-17-openjdk-amd64/lib"/>
-    <property name="sun.java.command" value="/workspace/project/target/surefire/surefirebooter-20260605183405007_3.jar /workspace/project/target/surefire 2026-06-05T18-34-04_805-jvmRun1 surefire-20260605183405007_1tmp surefire_0-20260605183405007_2tmp"/>
+    <property name="sun.java.command" value="/workspace/project/target/surefire/surefirebooter-20260608185248829_3.jar /workspace/project/target/surefire 2026-06-08T18-52-48_675-jvmRun1 surefire-20260608185248829_1tmp surefire_0-20260608185248829_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/workspace/project/target/test-classes:/workspace/project/target/classes:/root/.m2/repository/org/junit/jupiter/junit-jupiter/5.10.0/junit-jupiter-5.10.0.jar:/root/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.10.0/junit-jupiter-api-5.10.0.jar:/root/.m2/repository/org/opentest4j/opentest4j/1.3.0/opentest4j-1.3.0.jar:/root/.m2/repository/org/junit/platform/junit-platform-commons/1.10.0/junit-platform-commons-1.10.0.jar:/root/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar:/root/.m2/repository/org/junit/jupiter/junit-jupiter-params/5.10.0/junit-jupiter-params-5.10.0.jar:/root/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.10.0/junit-jupiter-engine-5.10.0.jar:/root/.m2/repository/org/junit/platform/junit-platform-engine/1.10.0/junit-platform-engine-1.10.0.jar:"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -27,7 +27,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
-    <property name="surefire.real.class.path" value="/workspace/project/target/surefire/surefirebooter-20260605183405007_3.jar"/>
+    <property name="surefire.real.class.path" value="/workspace/project/target/surefire/surefirebooter-20260608185248829_3.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="17.0.19+10-1-deb12u2-Debian"/>
     <property name="user.name" value="root"/>
@@ -52,32 +52,32 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="61.0"/>
   </properties>
-  <testcase name="exit_printsGoodbye" classname="com.demo.CliE2ETest" time="0.276"/>
-  <testcase name="startTask_invalidId" classname="com.demo.CliE2ETest" time="0.191"/>
-  <testcase name="completeTask_success" classname="com.demo.CliE2ETest" time="0.212"/>
-  <testcase name="listTasks_empty_showsNoTasks" classname="com.demo.CliE2ETest" time="0.109"/>
-  <testcase name="addTask_withValidDueDate_createsTask" classname="com.demo.CliE2ETest" time="0.172"/>
-  <testcase name="invalidOption_showsInvalidMessage" classname="com.demo.CliE2ETest" time="0.101"/>
-  <testcase name="assignTask_notFound" classname="com.demo.CliE2ETest" time="0.104"/>
-  <testcase name="cancelTask_success" classname="com.demo.CliE2ETest" time="0.165"/>
-  <testcase name="listTasks_afterAdding_showsTask" classname="com.demo.CliE2ETest" time="0.17"/>
-  <testcase name="showOverdue_noOverdueTasks" classname="com.demo.CliE2ETest" time="0.109"/>
-  <testcase name="startTask_success" classname="com.demo.CliE2ETest" time="0.166"/>
-  <testcase name="fullWorkflow_addStartCompleteListSummary" classname="com.demo.CliE2ETest" time="0.167"/>
-  <testcase name="assignTask_success" classname="com.demo.CliE2ETest" time="0.167"/>
-  <testcase name="showOverdue_withOverdueTask" classname="com.demo.CliE2ETest" time="0.154"/>
-  <testcase name="showSummary_empty" classname="com.demo.CliE2ETest" time="0.107"/>
-  <testcase name="cancelTask_notFound" classname="com.demo.CliE2ETest" time="0.107"/>
-  <testcase name="addTask_emptyTitle_showsError" classname="com.demo.CliE2ETest" time="0.1"/>
-  <testcase name="startTask_notFound" classname="com.demo.CliE2ETest" time="0.1"/>
-  <testcase name="completeTask_notFound" classname="com.demo.CliE2ETest" time="0.103"/>
-  <testcase name="addTask_invalidDate_skipsDate" classname="com.demo.CliE2ETest" time="0.159"/>
-  <testcase name="removeTask_success" classname="com.demo.CliE2ETest" time="0.167"/>
-  <testcase name="option11_isNowInvalid" classname="com.demo.CliE2ETest" time="0.102"/>
-  <testcase name="removeTask_notFound" classname="com.demo.CliE2ETest" time="0.115"/>
-  <testcase name="menu_showsAllTenOptions" classname="com.demo.CliE2ETest" time="0.103"/>
-  <testcase name="setPriority_notFound" classname="com.demo.CliE2ETest" time="0.109"/>
-  <testcase name="setPriority_success" classname="com.demo.CliE2ETest" time="0.151"/>
-  <testcase name="addTask_createsTaskAndShowsConfirmation" classname="com.demo.CliE2ETest" time="0.151"/>
-  <testcase name="showSummary_afterAddingTasks" classname="com.demo.CliE2ETest" time="0.144"/>
+  <testcase name="exit_printsGoodbye" classname="com.demo.CliE2ETest" time="0.187"/>
+  <testcase name="startTask_invalidId" classname="com.demo.CliE2ETest" time="0.123"/>
+  <testcase name="completeTask_success" classname="com.demo.CliE2ETest" time="0.154"/>
+  <testcase name="listTasks_empty_showsNoTasks" classname="com.demo.CliE2ETest" time="0.121"/>
+  <testcase name="addTask_withValidDueDate_createsTask" classname="com.demo.CliE2ETest" time="0.174"/>
+  <testcase name="invalidOption_showsInvalidMessage" classname="com.demo.CliE2ETest" time="0.112"/>
+  <testcase name="assignTask_notFound" classname="com.demo.CliE2ETest" time="0.102"/>
+  <testcase name="cancelTask_success" classname="com.demo.CliE2ETest" time="0.155"/>
+  <testcase name="listTasks_afterAdding_showsTask" classname="com.demo.CliE2ETest" time="0.146"/>
+  <testcase name="showOverdue_noOverdueTasks" classname="com.demo.CliE2ETest" time="0.117"/>
+  <testcase name="startTask_success" classname="com.demo.CliE2ETest" time="0.146"/>
+  <testcase name="fullWorkflow_addStartCompleteListSummary" classname="com.demo.CliE2ETest" time="0.155"/>
+  <testcase name="assignTask_success" classname="com.demo.CliE2ETest" time="0.145"/>
+  <testcase name="showOverdue_withOverdueTask" classname="com.demo.CliE2ETest" time="0.152"/>
+  <testcase name="showSummary_empty" classname="com.demo.CliE2ETest" time="0.097"/>
+  <testcase name="cancelTask_notFound" classname="com.demo.CliE2ETest" time="0.089"/>
+  <testcase name="addTask_emptyTitle_showsError" classname="com.demo.CliE2ETest" time="0.123"/>
+  <testcase name="startTask_notFound" classname="com.demo.CliE2ETest" time="0.094"/>
+  <testcase name="completeTask_notFound" classname="com.demo.CliE2ETest" time="0.095"/>
+  <testcase name="addTask_invalidDate_skipsDate" classname="com.demo.CliE2ETest" time="0.149"/>
+  <testcase name="removeTask_success" classname="com.demo.CliE2ETest" time="0.159"/>
+  <testcase name="option11_isNowInvalid" classname="com.demo.CliE2ETest" time="0.106"/>
+  <testcase name="removeTask_notFound" classname="com.demo.CliE2ETest" time="0.088"/>
+  <testcase name="menu_showsAllTenOptions" classname="com.demo.CliE2ETest" time="0.091"/>
+  <testcase name="setPriority_notFound" classname="com.demo.CliE2ETest" time="0.094"/>
+  <testcase name="setPriority_success" classname="com.demo.CliE2ETest" time="0.133"/>
+  <testcase name="addTask_createsTaskAndShowsConfirmation" classname="com.demo.CliE2ETest" time="0.124"/>
+  <testcase name="showSummary_afterAddingTasks" classname="com.demo.CliE2ETest" time="0.135"/>
 </testsuite>
